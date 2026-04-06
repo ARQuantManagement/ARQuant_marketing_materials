@@ -99,7 +99,7 @@ def update_PowerPoint(maindir, datadir, arsenydir,
     factsheet_html(f_fsnet(fs_net,pct=pct), 
                    maindir+datadir+arsenydir+ppdir+'Fact_sheet_after_fees',
                    isLastRow = False,
-                   table_width = '420px;', col_width = '7.2%;',
+                   table_width = '100%;', col_width = '7.2%;',
                    # row_height = '50%;',
                    width='24.8cm;', #width was 24.95
                    height = '8.19cm;', #0.91 per row
@@ -202,7 +202,7 @@ def update_PowerPoint_SPY(maindir, datadir, arsenydir,
     factsheet_html(f_fsnet(fs_net,pct=pct), 
                    maindir+datadir+arsenydir+ppdir+'Fact_sheet_after_fees',
                    isLastRow = False,
-                   table_width = '420px;', col_width = '7.2%;',
+                   table_width = '100%;', col_width = '7.2%;',
                    # row_height = '50%;',
                    width='24.8cm;', #width was 24.95
                    height = '8.19cm;', #0.91 per row

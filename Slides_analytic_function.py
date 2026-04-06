@@ -290,9 +290,14 @@ def read_csv(datadir, filename='AVESA_Group_Ltd_U3577443_history.csv'):
 
 #Dictionary with required periods
 def period_index(df, period_list):
-    from pandas.tseries.offsets import DateOffset, BDay
-    import first_and_last_BDays
-    from first_and_last_BDays import First_and_Last_BDays_of_year_US
+    from pandas.tseries.offsets import DateOffset, BDay, CustomBusinessDay
+    from pandas.tseries.holiday import USFederalHolidayCalendar
+
+    def First_and_Last_BDays_of_year_US(year):
+        year = int(str(year)[:4])
+        cbd = CustomBusinessDay(calendar=USFederalHolidayCalendar())
+        idx = pd.date_range(start=f'{year}-01-01', end=f'{year}-12-31', freq=cbd)
+        return idx[0], idx[-1]
     
     periods={}
     for per in period_list:

@@ -445,7 +445,18 @@ def factsheet_html(df, outputname, resolution = 200,
       #  Try letter instead of <style>
       # <link rel="stylesheet" type="text/css" href="style.css"> 
 
+    import re
     pd.set_option('colheader_justify', 'center')   # FOR TABLE <th>
+
+    # Grow page height dynamically if the table is taller than the requested page
+    n_rows = len(df) + 1
+    height_match = re.search(r'([0-9]*\.?[0-9]+)cm', height)
+    if height_match:
+        height_cm = float(height_match.group(1))
+        needed_height = max(height_cm, 1.6 + n_rows * 0.90)
+        if needed_height > height_cm:
+            height = f'{needed_height:.2f}cm;'
+
     # create html_string with styles
     html_string = '''
     <html>
@@ -453,6 +464,7 @@ def factsheet_html(df, outputname, resolution = 200,
       <style>
         .dataframe table    { margin-bottom: 1.4em; 
                              width: 100%; 
+                             table-layout: fixed;
                              border-collapse: collapse;
                              border-spacing: 0;
                              font-family: "Avenir Next";
@@ -460,13 +472,18 @@ def factsheet_html(df, outputname, resolution = 200,
                              }
         .dataframe th       { font-weight: bold; text-align: left; 
                              padding: 5px 25px 5px 10px; 
-                             border: 0px;}
+                             border: 0px; 
+                             white-space: nowrap;
+                             word-break: keep-all; }
         .dataframe tr:last-child{ border-bottom: 5px solid '''+bcolor+'''}
         .dataframe thead th { background: '''+bcolor+''' 
                              padding: 5px 25px 5px 10px;}
         .dataframe td       { text-align: left; 
                              padding: 5px 25px 5px 10px; 
-                             border: 0; }
+                             border: 0; 
+                             white-space: nowrap;
+                             overflow-wrap: normal;
+                             word-break: keep-all; }
         .dataframe th,td,caption { padding: 5px 25px 5px 10px; }
         .dataframe tbody tr:nth-child(even) td, 
         .dataframe tbody tr.even td { background: #d2d2d2; }
@@ -474,6 +491,9 @@ def factsheet_html(df, outputname, resolution = 200,
         .dataframe tbody tr.even th { background: #d2d2d2; }
         .dataframe tfoot     { font-style: italic; }
         .dataframe caption   { background: #eee; }
+        .dataframe thead { display: table-header-group; }
+        .dataframe tbody { display: table-row-group; }
+        .dataframe tr { page-break-inside: avoid; break-inside: avoid; }
                               
          </style>
       </head>
@@ -533,7 +553,16 @@ def factsheet_html(df, outputname, resolution = 200,
     font_config = FontConfiguration()
     
     from weasyprint import HTML, CSS
-    
+
+    cw0 = cw1 = cw2 = 'auto;'
+    if col_width is not None:
+        if isinstance(col_width, str):
+            cw0 = cw1 = cw2 = col_width
+        else:
+            cw0 = str(col_width[0])
+            cw1 = str(col_width[1])
+            cw2 = str(col_width[2])
+
     css=CSS(string='''
             @page {
               background: white;
@@ -551,11 +580,14 @@ def factsheet_html(df, outputname, resolution = 200,
               font-family: "Avenir Next";
               }
             table { table-layout: fixed;
-                   width:'''+table_width+'}'+'tr {height: '+row_height+'}'+
-            '''
+                   width:'''+table_width+''';
+                   page-break-inside: avoid;
+                   break-inside: avoid; }
+            tr {height: '+row_height+'; page-break-inside: avoid; }
             th, td {font-family: "Avenir Next";
               font-size: 16px;
-              width:'''+cw0+'max-width:'+cw1+ 'min-width:'+cw2+'}',
+              width:'+cw0+'; max-width:'+cw1+'; min-width:'+cw2+'; }
+            ''',
             font_config = font_config)
     HTML(outputname+'.html').write_png(outputname+'.png', 
                                        stylesheets=[css], 
