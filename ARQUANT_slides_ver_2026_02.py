@@ -163,9 +163,9 @@ if isinstance(new_end, str):
 if isinstance(new_end, dt.datetime):
     new_end= new_end.date()
     
-#%%    
-#print('Loading daily return history of ARquant startegy...')    
-andrew_ret=pd.read_csv(histdir+params['file_returns'], 
+#%%
+#print('Loading daily return history of ARquant startegy...')
+andrew_ret=pd.read_csv(os.path.join(histdir, params['file_returns']), 
                        infer_datetime_format=False)
 andrew_ret['Date']=pd.to_datetime(andrew_ret['Date'], dayfirst=True,
                                   infer_datetime_format='%d/%m/%Y')#correct parse dates
@@ -198,11 +198,11 @@ if new_start.strftime("%Y-%m-%d")==inception:
 else:
     _period=new_start.strftime('%Y-%m-%d')+'_'+new_end.strftime('%Y-%m-%d')
         
-datadir = '../Data/Presentation_' + _period +'/'
-makedirs(maindir+datadir, exist_ok=True)
-makedirs(maindir+datadir+intdir, exist_ok=True)
-makedirs(maindir+datadir+arsenydir, exist_ok=True)
-makedirs(maindir+datadir+arsenydir+'CSV/', exist_ok=True)
+datadir = os.path.join('..', 'Data', 'Presentation_' + _period)
+makedirs(os.path.join(maindir, datadir), exist_ok=True)
+makedirs(os.path.join(maindir, datadir, intdir), exist_ok=True)
+makedirs(os.path.join(maindir, datadir, arsenydir), exist_ok=True)
+makedirs(os.path.join(maindir, datadir, arsenydir, 'CSV'), exist_ok=True)
 
 # andrew_ret=andrew_ret.loc[ new_start.strftime("%Y-%m-%d") : new_end.strftime("%Y-%m-%d")] #for selecting other dates
 andrew_ret=andrew_ret.loc[ new_start : new_end] #for selecting other dates
@@ -216,8 +216,8 @@ print('\n Saving returns...')
 # Returns daily->monthly
 ak_monthly=andrew_ret.resample("M").apply(lambda x: ((x + 1).cumprod() - 1).last("D"))
 ak_monthly.index=ak_monthly.index.to_period('M')
-ak_monthly.to_csv(histdir+params['file_returns'][:-4]+'_mothly.csv')
-ak_monthly.to_csv(maindir+datadir+params['file_returns'][:-4]+'_mothly.csv')
+ak_monthly.to_csv(os.path.join(histdir, params['file_returns'][:-4]+'_mothly.csv'))
+ak_monthly.to_csv(os.path.join(maindir, datadir, params['file_returns'][:-4]+'_mothly.csv'))
 
 def _drawdown(return_series):
     wealth_index = 1000*(1+return_series).cumprod()
@@ -226,7 +226,7 @@ def _drawdown(return_series):
     drawdowns = (wealth_index - previous_peaks)/previous_peaks
     return drawdowns
 dd = _drawdown(ak_monthly.squeeze())
-dd.to_csv(maindir+datadir+'DrawDowns_monthly.csv')    
+dd.to_csv(os.path.join(maindir, datadir, 'DrawDowns_monthly.csv'))    
 
 #%%
 #Selecting possible periods from all_periods_stats
@@ -287,7 +287,7 @@ def period_index_monthly(df, period_list):
 #%%
 ## Statistics
 #Risk Free Rate - RF
-rfr_monthly = pd.read_csv(histdir+'Risk_Free_Rate_monthly.csv',index_col=[0],
+rfr_monthly = pd.read_csv(os.path.join(histdir, 'Risk_Free_Rate_monthly.csv'), index_col=[0],
                           infer_datetime_format=True).squeeze()
 rfr_monthly.index=pd.to_datetime(rfr_monthly.index, format='%Y-%m-%d')
 rfr_monthly.index=rfr_monthly.index.to_period('M')
@@ -310,17 +310,17 @@ ak_stats_internal=stats_periods_monthly(ak_monthly, periods, rfr_monthly)
 from Slides_for_print_function import stats_periods_for_print2
 ak_stats_internal_for_print=stats_periods_for_print2(ak_stats_internal)
 ak_stats_internal_for_print.index.rename('Risk/Return (before fees)', inplace=True)
-ak_stats_internal_for_print.to_csv(maindir+datadir+intdir+'Stats_internal_for_print.csv')
+ak_stats_internal_for_print.to_csv(os.path.join(maindir, datadir, intdir, 'Stats_internal_for_print.csv'))
 
 #For presentation (investors)
 print('    for investors (presentation)')
-periods = period_index_monthly(ak_monthly, 
+periods = period_index_monthly(ak_monthly,
                                possible_periods_monthly(ak_monthly, new_start, investor_periods_stats)
                                )
 ak_stats_investor=stats_periods_monthly(ak_monthly, periods, rfr_monthly)
-ak_stats_investor.to_pickle(maindir+datadir+arsenydir+'Stats.pkl') #keeps index and data type
+ak_stats_investor.to_pickle(os.path.join(maindir, datadir, arsenydir, 'Stats.pkl')) #keeps index and data type
 ak_stats_investor.index.rename('Risk/Return', inplace=True)
-ak_stats_investor.to_csv(maindir+datadir+arsenydir+'CSV/Stats.csv')
+ak_stats_investor.to_csv(os.path.join(maindir, datadir, arsenydir, 'CSV', 'Stats.csv'))
 
 #%%    
 ### Factsheet before and after fees
@@ -334,7 +334,7 @@ print('Preparing Fact sheet (before and after fees)...')
 ak_fs_gross=factsheet(ak_monthly, 
                       years=params['fs_years'],
                       output='before fees', decim=3)
-ak_fs_gross.to_csv(datadir+intdir+'Fact Sheet (before fees).csv')
+ak_fs_gross.to_csv(os.path.join(datadir, intdir, 'Fact Sheet (before fees).csv'))
 
 ###Fact sheet AFTER fees
 NAV0=100.
@@ -359,9 +359,9 @@ nav_monthly2, hwm_monthly2, ak_net_monthly2 = after_fees2m(ak_monthly.loc['2022-
 ak_net_monthly2 .rename('ARQuant (net of fees)')
 
 #Saving details of accuals until Dec-2022
-after_fees2m(ak_monthly.loc['2022-10':], NAV0=nav_monthly2.iloc[-1], 
-             mfra=mfee, pfr=pfee, 
-             hra=hurdle, out='details').T.to_csv(maindir+datadir+'Details of fees accuals until Dec-2022.csv')
+after_fees2m(ak_monthly.loc['2022-10':], NAV0=nav_monthly2.iloc[-1],
+             mfra=mfee, pfr=pfee,
+             hra=hurdle, out='details').T.to_csv(os.path.join(maindir, datadir, 'Details of fees accuals until Dec-2022.csv'))
 
 #Since Jan-2023 new MF and PF rates (2nd band, ie 1-3 mln)
 mfee1=0.9/100
@@ -376,11 +376,11 @@ ak_net_monthly3 = after_fees2m(ak_monthly.loc['2023-01':],
                                hra=hurdle1, out='return'
                                ).rename('ARQuant (net of fees)')
 #Saving details of accuals since Jan-2022
-after_fees2m(ak_monthly.loc['2023-01':], 
+after_fees2m(ak_monthly.loc['2023-01':],
              NAV0=nav_monthly2.iloc[-1],
-             hwm0=hwm_monthly2.iloc[-1], 
-             mfra=mfee1, pfr=pfee1, 
-             hra=hurdle1, out='details').T.to_csv(maindir+datadir+'Details of fees accuals since Jan-2023.csv')
+             hwm0=hwm_monthly2.iloc[-1],
+             mfra=mfee1, pfr=pfee1,
+             hra=hurdle1, out='details').T.to_csv(os.path.join(maindir, datadir, 'Details of fees accuals since Jan-2023.csv'))
 
 #Merging all periods
 ak_net_monthly = pd.concat([ak_net_monthly1,
@@ -389,7 +389,7 @@ ak_net_monthly = pd.concat([ak_net_monthly1,
 ak_net_monthly.rename('ARQuant (net of fees)', inplace=True)
 ak_net_monthly.index=ak_monthly.index
  
-ak_net_monthly.to_csv(maindir+datadir+params['file_returns'][:-4]+'_mothly_net.csv')
+ak_net_monthly.to_csv(os.path.join(maindir, datadir, params['file_returns'][:-4]+'_mothly_net.csv'))
 
 #factsheet as CSV
 feestring=str(round(mfee1*100,2))+'-'+str(int(pfee1*100))+'-'+str(round(hurdle1*100,1))
@@ -400,14 +400,14 @@ ak_fs_net=factsheet(ak_net_monthly,
                     decim=4, 
                     # **kwargs
                     )
-ak_fs_net.to_csv(datadir+intdir+'Fact Sheet (after fees '+feestring+').csv')
-ak_fs_net.to_csv(datadir+arsenydir+'Fact_Sheet_after_fees.csv')
+ak_fs_net.to_csv(os.path.join(datadir, intdir, 'Fact Sheet (after fees '+feestring+').csv'))
+ak_fs_net.to_csv(os.path.join(datadir, arsenydir, 'Fact_Sheet_after_fees.csv'))
 
 #%%    
 ### French-Fama
 print('Calculating French-Fama loadings for different periods...')
 
-ff_monthly = pd.read_csv(histdir+'Frecn_Fama_monthly.csv', 
+ff_monthly = pd.read_csv(os.path.join(histdir, 'Frecn_Fama_monthly.csv'), 
                  index_col=[0], infer_datetime_format=True)
 ff_monthly.index=pd.to_datetime(ff_monthly.index, format='%Y-%m-%d')
 ff_monthly.index=ff_monthly.index.to_period('M')
@@ -419,7 +419,7 @@ ff_monthly['RF']=rfr_monthly
 ff_monthly = ff_monthly.drop(['CMA','RMW'], axis=1)
 
 #Only SPY - CAMP
-spy= pd.read_csv(histdir+'SPY_returns_Monthly.csv', 
+spy= pd.read_csv(os.path.join(histdir, 'SPY_returns_Monthly.csv'),
                   index_col=[0], infer_datetime_format=True).squeeze()
 spy.index=pd.to_datetime(spy.index).to_period('M')
 spy.rename('SPY', inplace=True)
@@ -433,7 +433,7 @@ def ff_alpha_beta2(ak_monthly, ff_monthly, periods,
     
     from os import chdir, getcwd, makedirs
     
-    makedirs(datadir+subdir, exist_ok=True)    
+    makedirs(os.path.join(datadir, subdir), exist_ok=True)    
     cd = getcwd()
     chdir(librarydir)
     
@@ -469,9 +469,9 @@ def ff_alpha_beta2(ak_monthly, ff_monthly, periods,
         ak_monthly2 = ak_monthly.loc[idx_common]
         
         FF3x2(ak_monthly2, ff_monthly2,
-              print_=True, display_=False, 
-              dirname=datadir+subdir, rnd=rnd, name=period)
-        bt=pd.read_csv(datadir+subdir+period+'_FF3x2.csv', index_col=[0])
+              print_=True, display_=False,
+              dirname=os.path.join(datadir, subdir), rnd=rnd, name=period)
+        bt=pd.read_csv(os.path.join(datadir, subdir, period+'_FF3x2.csv'), index_col=[0])
         bt_all=pd.concat([bt_all, bt], axis=1)
         
     bt_all.loc['Beta (S&P500)']=bt_all.loc['Mkt-RF']
@@ -491,11 +491,11 @@ periods = period_index_monthly(ak_monthly,
                                possible_periods_monthly(ak_monthly, new_start, analytic_periods_ff)
                                )
 bt_all_internal=ff_alpha_beta2(ak_monthly, ff_monthly, periods,
-                               maindir+datadir+intdir, librarydir, 
-                               subdir='French-Fama/', display_=False, 
+                               os.path.join(maindir, datadir, intdir), librarydir,
+                               subdir='French-Fama/', display_=False,
                                print_=True, rnd=4)
 
-bt_all_internal.to_csv(maindir+datadir+intdir+'FF3x2_internal.csv')
+bt_all_internal.to_csv(os.path.join(maindir, datadir, intdir, 'FF3x2_internal.csv'))
 
 #For investors
 print('    for investors (presentation)')
@@ -504,12 +504,12 @@ periods = period_index_monthly(ak_monthly,
                                )
  
 bt_all= ff_alpha_beta2(ak_monthly, ff_monthly, periods,
-                       maindir+datadir+arsenydir, librarydir, 
-                       subdir='French-Fama/', display_=False, 
+                       os.path.join(maindir, datadir, arsenydir), librarydir,
+                       subdir='French-Fama/', display_=False,
                        print_=True, rnd=4)
-          
-bt_all.to_pickle(maindir+datadir+arsenydir+'FF3x2.pkl')
-bt_all.to_csv(maindir+datadir+arsenydir+'CSV/FF3x2.csv')
+
+bt_all.to_pickle(os.path.join(maindir, datadir, arsenydir, 'FF3x2.pkl'))
+bt_all.to_csv(os.path.join(maindir, datadir, arsenydir, 'CSV', 'FF3x2.csv'))
     
 #%%  
 #ETF basket
@@ -527,7 +527,7 @@ bm_new = bm_new_daily.resample("M").apply(lambda x: ((x + 1).prod() - 1))
 bm_new.index=bm_new.index.to_period('M')
 
 #Old Eureka index
-erk = pd.read_csv(indexdir+'Eurekahedge North America Long Short Equities HF Index.csv', 
+erk = pd.read_csv(os.path.join(indexdir, 'Eurekahedge North America Long Short Equities HF Index.csv'), 
                   index_col=[0], infer_datetime_format=True)['Return']
 erk.index= pd.to_datetime(erk.index).to_period('M')
 erk.rename('Old benchmark (EurekaHedge N.America)', inplace=True)
@@ -547,7 +547,7 @@ dfs1=pd.concat(dfs1, axis=1, join='outer').reset_index().set_index(['Date'])
 #%%
 # Load SPY - monthly returns
 print('Loading SPY monthly returns...')
-spy= pd.read_csv(histdir+'SPY_returns_Monthly.csv', 
+spy= pd.read_csv(os.path.join(histdir, 'SPY_returns_Monthly.csv'),
                  index_col=[0], infer_datetime_format=True).squeeze()
 spy.index=pd.to_datetime(spy.index).to_period('M')
 spy.rename('S&P500 (SPY)', inplace=True)
@@ -560,9 +560,9 @@ spy.rename('S&P500 (SPY)', inplace=True)
 dfs2=pd.concat([dfs1, spy], axis=1, join='inner')
 dfs2=dfs2.loc[dfs1.index]
 
-dfs2.to_csv(maindir+datadir+intdir+'ARQuant vs Benchmarks.csv')
-dfs2.to_pickle(maindir+datadir+arsenydir+'ARQuant vs Benchmarks.pkl')
-dfs2.to_csv(maindir+datadir+arsenydir+'CSV/ARQuant vs Benchmarks.csv')
+dfs2.to_csv(os.path.join(maindir, datadir, intdir, 'ARQuant vs Benchmarks.csv'))
+dfs2.to_pickle(os.path.join(maindir, datadir, arsenydir, 'ARQuant vs Benchmarks.pkl'))
+dfs2.to_csv(os.path.join(maindir, datadir, arsenydir, 'CSV', 'ARQuant vs Benchmarks.csv'))
 
 
 #%%
@@ -576,7 +576,7 @@ print('Creating Drawdown Period Plot...')
 chdir(maindir)
 # from Slides_analytic_function import drawdown_details_monthly
 from Slides_for_print_function import plot_longest_drawdowns
-makedirs(maindir+datadir+intdir+plotdir, exist_ok=True)
+makedirs(os.path.join(maindir, datadir, intdir, plotdir), exist_ok=True)
 
 dicclrs={'arquant':'#ea6639',   # '#dc6d45'
       'benchmark1':'#43884e',
@@ -588,8 +588,8 @@ dicclrs={'arquant':'#ea6639',   # '#dc6d45'
 for period in periods.keys():
     print('Period: ', period)    
     model3 = 'Drawdoans_Periods_'
-    savefig3=maindir+datadir+intdir+plotdir+model3+period+'.png'
-    save_dd=maindir+datadir+intdir+plotdir+model3+period+'.csv'
+    savefig3=os.path.join(maindir, datadir, intdir, plotdir, model3+period+'.png')
+    save_dd=os.path.join(maindir, datadir, intdir, plotdir, model3+period+'.csv')
     # logret = np.log(1 + andrew_ret.loc[periods[period]] )
 
     ret = ak_net_monthly.loc[periods[period]]
@@ -650,9 +650,9 @@ for period in periods.keys():
     dfs_wealth['New bechmark (ETF basket)'].loc['2023-12']=1.
     multiple=dfs_wealth['Old benchmark (EurekaHedge N.America)'].loc['2023-12']
     dfs_wealth['New bechmark (ETF basket)'].loc['2023-12':]=dfs_wealth['New bechmark (ETF basket)'].loc['2023-12':]*multiple
-    plot_for_print(dfs_wealth, 
+    plot_for_print(dfs_wealth,
                    dicclrs,
-                   datadir=maindir+datadir+intdir+plotdir, 
+                   datadir=os.path.join(maindir, datadir, intdir, plotdir), 
                    yscale = 'log', base =100,
                    marker=[None,None,None,None,None],
                    ytext = "Net Return Index (Log scale)",
