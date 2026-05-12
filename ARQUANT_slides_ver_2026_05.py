@@ -100,7 +100,7 @@ condition3 = (dt.datetime.today().month ==2) and (last_update_month==12) #now Ja
 # if condition1 or condition2 or condition3:
   # Update ARQuant, HFRI and EurekaHedge indexes
 
-from Update_dataset_ARQuant_slides_2025_10 import * #HFR and French-Fama updates - NOT IN USE
+from Update_dataset_ARQuant_slides_2026_05 import * #HFR and French-Fama updates - NOT IN USE
 ARQuant_history_update(report_list[0])
 update_dataset()
 
@@ -665,7 +665,7 @@ for period in periods.keys():
 # datadir = 'Data/Presentation_Inception_2022-03-31/'
 if isForPP:
     chdir(maindir)
-    from ARQUANT_slides_for_PowerPoint_2025_02 import update_PowerPoint
+    from ARQUANT_slides_for_PowerPoint_2026_05 import update_PowerPoint
     update_PowerPoint(maindir, datadir, arsenydir,
                       pages_stat=params['PP_pages_stat'],
                       pages_ff = params['PP_pages_ff'],
@@ -683,7 +683,7 @@ if isForWeb:
     # import ARQUANT_slides_for_website_v2
     if new_start.strftime("%Y-%m-%d")==inception: 
         chdir(maindir)
-        from ARQUANT_slides_for_website_06_2022 import update_web
+        from ARQUANT_slides_for_website_2026_05 import update_web
         update_web(maindir, datadir, arsenydir, intdir,
                    filename = 'Fact Sheet (after fees '+feestring+').csv',
                    isAlpha=False)
