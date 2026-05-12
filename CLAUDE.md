@@ -4,60 +4,83 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Environment
 
-Python environment: `GoTrade37_pip` (conda/pip). Scripts are designed to run in Jupyter/IPython (they use `%autoreload` magic at the top).
+Python environment: `ARQuant37_pip` (conda env at `/Users/alexander/opt/anaconda3/envs/ARQuant37_pip`, Python 3.7). Required external packages: `pandas_datareader` (FRED API), `yfinance` (ETFs), `weasyprint` (HTML→PDF for factsheet), `matplotlib`, `pandas`. Scripts use `%autoreload` magic and are designed to run in Jupyter/IPython but also work as standalone Python.
 
-Key external dependency: data lives in Dropbox at `~/Dropbox/5-Finance/myARQuant/Python/Data/`. The scripts `chdir` into `maindir` before importing local modules, so the working directory matters at runtime.
+Run with explicit interpreter to avoid env mismatches:
+```bash
+/Users/alexander/opt/anaconda3/envs/ARQuant37_pip/bin/python <script>.py
+```
+
+## Path conventions
+
+All scripts use `script_dir = os.path.dirname(os.path.abspath(__file__))` as `maindir`, making the project **location-independent**. Data is expected one level above the project root:
+
+- Project: `.../Python/ARQuant marketing materials/`
+- Data: `.../Python/Data/ARQuant_history/`, `.../Python/Data/Indexes/`
+- Outputs: `.../Python/Data/Factsheet_<period>/`, `.../Python/Data/Presentation_<period>/`
+
+**Always use `os.path.join()`** for path construction, never string concatenation (e.g., `maindir + datadir` produces broken paths). The `datadir` variable is a relative path starting with `'..'`:
+```python
+datadir = os.path.join('..', 'Data', 'Factsheet_' + _period)
+```
 
 ## Running scripts
 
-Run the main report generation script interactively in Jupyter/IPython:
-```
-# In Jupyter, open and run ARQUANT_slides_ver_2026_02.py cell by cell
-```
+The two main entry-point scripts are:
+- `ARQUANT_slides_ver_2026_05.py` — generates slides for website/PowerPoint
+- `ARQUANT_factsheet_2026_05.py` — generates monthly investor factsheet (PDF/HTML)
 
-Or directly:
-```bash
-python ARQUANT_slides_ver_2026_02.py
-```
+Both will `sys.exit()` if the required monthly IBKR CSV input files are missing in `histdir` — check the printed message for which files to download.
 
-The main script will exit early (`sys.exit()`) if the required monthly CSV input files are not present in `histdir`. Check the printed message for which files to download from IBKR.
+## Version suffix convention
+
+Most scripts share a unified `2026_05` suffix that should be updated together when bumping versions. **Exception:** `Benchmark_new_2025.py` keeps its `2025` suffix and is imported as `from Benchmark_new_2025 import ...`.
 
 ## Architecture
 
-This project generates periodic investor performance reports for ARQuant/AVESA hedge fund in multiple output formats (website HTML, PowerPoint assets).
+This project generates periodic investor performance reports for ARQuant/AVESA hedge fund in multiple output formats (website HTML, PowerPoint assets, monthly factsheet).
 
 **Data flow:**
 
-1. **Input data** — CSV/pickle files in `~/Dropbox/.../Data/ARQuant_history/` and `.../Data/Indexes/`
-   - IBKR FTP-delivered monthly return files (e.g. `AVESA_Group_Ltd_<month>_<year>_daily.csv`)
+1. **Input data** — CSVs in `../Data/ARQuant_history/` and `../Data/Indexes/`
+   - IBKR FTP-delivered monthly return files (e.g. `ARQuant_Management_Limited_<month>_<year>_daily.csv`)
    - Long-term history: `AVESA_Group_Ltd_U3577443_history.csv`
-   - Benchmark indexes: HFRI Quant Directional, Eurekahedge, Fama-French factors
+   - Benchmark indexes: Eurekahedge, Fama-French factors, SPY, VIX cached
 
-2. **Orchestration** — `ARQUANT_slides_ver_2026_02.py`
-   - Sets date range (`new_start`, `new_end`) and detects which input files are available
-   - Calls analytics functions, then dispatches to output generators
-   - Imports `Slides_analytic_function` from `maindir` (Dropbox), not from the repo directly
+2. **Orchestration scripts:**
+   - `ARQUANT_slides_ver_2026_05.py` — slides pipeline; calls analytics then dispatches to website/PowerPoint generators
+   - `ARQUANT_factsheet_2026_05.py` — factsheet pipeline; parses IBKR FlexReport via `IBKR_lib`, builds plots, renders HTML/PDF
 
 3. **Analytics library** — `Slides_analytic_function.py`
-   - Core functions: return history loading/merging (`update_return_history_v4`), statistics computation, Fama-French regression, ETF data loading via `yfinance` (`ETFs_load`)
-   - Intermediate results are saved as pickle files (`Stats.pkl`, `FF3x2.pkl`) in `Presentation_Inputs/`
+   - Return history loading/merging (`update_return_history_v3/v4`, both take `histdir` as parameter)
+   - Statistics computation, Fama-French regression, ETF data loading via `yfinance` (`ETFs_load`)
+   - FRED fetchers (`VIX_load`, `SP500_load`, RFR via `pandas_datareader`)
+   - Intermediate results saved as pickles in `Presentation_Inputs/`
 
-4. **Output formatting** — `Slides_for_print_function.py`
-   - `stats_periods_for_print` / `stats_periods_for_print2`: reshape stats DataFrames into display-ready tables (formats as `%` strings, nulls out YTD rows for annualized metrics)
-   - `stat_html`, `camp_html`, `ff_html`: generate HTML table strings for slides
+4. **IBKR parsing** — `IBKR_lib.py`
+   - `parse_flexreport()` extracts sections from IBKR FlexReport CSV (Time Period Performance, Cumulative Performance, Performance by Symbol)
+   - `render()` shapes raw sections into returns + contributors dataframes
+   - `contrib_selection()` filters/sorts top-N contributors and detractors
+
+5. **Output formatting** — `Slides_for_print_function.py`
+   - `stats_periods_for_print` / `stats_periods_for_print2`: reshape stats into display tables
+   - `stat_html`, `camp_html`, `ff_html`, `factsheet_html`: HTML table/page generators (factsheet uses `weasyprint`)
    - Chart/plot functions for matplotlib figures
 
-5. **Output generators:**
-   - `ARQUANT_slides_for_website_06_2022.py` → `update_web()` — HTML slides saved to `Website_slides/`
-   - `ARQUANT_slides_for_PowerPoint_2025_02.py` → `update_PowerPoint()` — PNG exports and HTML tables saved to `PowerPoint/`
+6. **Output generators:**
+   - `ARQUANT_slides_for_website_2026_05.py` → `update_web()` — HTML slides → `Website_slides/`
+   - `ARQUANT_slides_for_PowerPoint_2026_05.py` → `update_PowerPoint()` — PNG/HTML tables → `PowerPoint/`
 
-6. **Data update utilities:**
-   - `Update_dataset_ARQuant_slides_2025_10.py` — `ARQuant_history_update()` appends new monthly IBKR data to the master history CSV; `update_dataset()` refreshes index data
-   - `Benchmark_new_2025.py` — `benchmark_update()` fetches ETF returns via `ETFs_load` and constructs composite benchmark series
+7. **Data update utilities:**
+   - `Update_dataset_ARQuant_slides_2026_05.py` — `ARQuant_history_update()` appends new monthly IBKR data; `update_dataset()` refreshes index data via FRED
+   - `Benchmark_new_2025.py` — `benchmark_update()` fetches ETF returns via `ETFs_load` and constructs composite benchmark
+
+## Network error handling
+
+FRED (`fred.stlouisfed.org`) is prone to read timeouts. Wrap any direct FRED call in try-except with a sensible fallback or "continue with existing data" message — see `update_dataset()` call site and `RFR_load()` in `ARQUANT_factsheet_2026_05.py` for the pattern.
 
 ## Key conventions
 
-- `new_end` in `ARQUANT_slides_ver_2026_02.py` drives the reporting period — update this for each new report.
-- `computer` path variable switches between machines (Moscow MacBook vs Nice MacBook).
+- `new_end` in the main scripts drives the reporting period — update this for each new report.
 - Pickle files in `Presentation_Inputs/` are intermediate caches — regenerate by re-running the analytics section if inputs change.
 - Brand color for ARQuant: `#ea6639`; font: Avenir.

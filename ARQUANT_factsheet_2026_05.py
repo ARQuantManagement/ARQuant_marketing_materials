@@ -41,7 +41,7 @@ from Slides_analytic_function import *
 
 #%%
 new_start='2018-03-01'
-new_end = '2026-03-31' #+manually change for Q1 _monthly
+new_end = '2026-04-30' #+manually change for Q1 _monthly
 
 year_month = dt.datetime.strptime(new_end, '%Y-%m-%d').strftime('%Y-%m')
 eend = dt.datetime.strptime(new_end, '%Y-%m-%d').strftime('%B_%Y_')
@@ -89,13 +89,13 @@ if isinstance(new_end, dt.datetime):
 #%%
 # isTrue=True
 List_of_files=[
-    histdir+'AVESA_Group_Ltd_U3577443_history.csv',
-    # indexdir+'bm_newI_Quant_Directional.csv',
-    indexdir+'Eurekahedge North America Long Short Equities HF Index.csv',
-    histdir+'French_Fama_approximation.csv',
-    histdir+'Frecn_Fama_daily.csv',
-    histdir+'Frecn_Fama_monthly.csv',
-    histdir+'Risk_Free_Rate_monthly.csv'
+    os.path.join(histdir, 'AVESA_Group_Ltd_U3577443_history.csv'),
+    # os.path.join(indexdir, 'bm_newI_Quant_Directional.csv'),
+    os.path.join(indexdir, 'Eurekahedge North America Long Short Equities HF Index.csv'),
+    os.path.join(histdir, 'French_Fama_approximation.csv'),
+    os.path.join(histdir, 'Frecn_Fama_daily.csv'),
+    os.path.join(histdir, 'Frecn_Fama_monthly.csv'),
+    os.path.join(histdir, 'Risk_Free_Rate_monthly.csv')
     ]
 
 # List_of_time_modified=[]
@@ -127,11 +127,15 @@ condition3 = (dt.datetime.today().month ==2) and (last_update_month==12) #now Ja
 
 from Update_dataset_ARQuant_slides_2026_05 import *
 ARQuant_history_update(report_list[0])
-update_dataset()
+try:
+    update_dataset()
+except Exception as e:
+    print(f'Warning: Failed to update dataset: {type(e).__name__}: {e}')
+    print('Continuing with existing data...')
 
 #%%    
 #print('Loading daily return history of ARquant startegy...')    
-andrew_ret=pd.read_csv(histdir+'AVESA_Group_Ltd_U3577443_history.csv', 
+andrew_ret=pd.read_csv(os.path.join(histdir, 'AVESA_Group_Ltd_U3577443_history.csv'), 
                        infer_datetime_format=False)
 andrew_ret['Date']=pd.to_datetime(andrew_ret['Date'], dayfirst=True,
                                   infer_datetime_format='%d/%m/%Y')#correct parse dates
@@ -162,15 +166,15 @@ if new_start.strftime("%Y-%m-%d")=='2018-03-01':
 else:
     _period=new_start.strftime('%Y-%m-%d')+'_'+new_end.strftime('%Y-%m-%d')
         
-datadir = 'Data/Factsheet_' + _period +'/'
-makedirs(maindir+datadir, exist_ok=True)
+datadir = os.path.join('..', 'Data', 'Factsheet_' + _period)
+makedirs(os.path.join(maindir, datadir), exist_ok=True)
 
 #%%    
 # Returns daily->monthly
 ak_monthly=andrew_ret[new_start:new_end].resample("M").apply(lambda x: ((x + 1).cumprod() - 1).last("D")).squeeze()
 ak_monthly.index=ak_monthly.index.to_period('M')
 ak_monthly.rename('ARQuant (gross)', inplace = True)
-# ak_monthly.to_csv(maindir+datadir+'AVESA_Group_Ltd_U3577443_monthly.csv')
+# ak_monthly.to_csv(os.path.join(maindir, datadir, 'AVESA_Group_Ltd_U3577443_monthly.csv'))
 
 # #%%
 # #Fact sheet BEFORE fees
@@ -236,8 +240,8 @@ from Slides_for_print_function import f_fsnet, factsheet_html #,factsheet_html_v
 height1 = 6.45#cm
 rh1=height1/(len(years_list)+1)-len(years_list)*0.01
 # rh1=.48
-factsheet_html(f_fsnet(ak_fs_net, pct=''), 
-               maindir+datadir+'_nl 1- Fact sheet (after_fees'+feestring+')',
+factsheet_html(f_fsnet(ak_fs_net, pct=''),
+               os.path.join(maindir, datadir, '_nl 1- Fact sheet (after_fees' + feestring + ')'),
                resolution = 300, isLastRow = False, isWriteHTML = False,
                table_width = '7.25cm;', 
                # col_formatter =['6.5%']+(['7%',]*12)+['9.5%'], 
@@ -252,8 +256,8 @@ factsheet_html(f_fsnet(ak_fs_net, pct=''),
 #Factsheet
 height2 = 8.8#cm
 rh2=height2/len(years_list)-0.16
-factsheet_html(f_fsnet(ak_fs_net, pct=''), 
-               maindir+datadir+'_fs 1- Fact sheet (after_fees'+feestring+')',
+factsheet_html(f_fsnet(ak_fs_net, pct=''),
+               os.path.join(maindir, datadir, '_fs 1- Fact sheet (after_fees' + feestring + ')'),
                resolution = 300, isLastRow = False, isWriteHTML = False,
                table_width = '14.7cm;', #if add row increase by 1.142857 420px
                # col_formatter =['6.5%']+(['7%',]*12)+['9.5%'], 
@@ -291,7 +295,7 @@ from IBKR_lib import parse_flexreport, render, contrib_selection
 for i, report in enumerate(report_list):
     print("Report : ", report)    
     #Extract selected sections from IB Report 1118496 as raw dataframe
-    dic = parse_flexreport(histdir+report,
+    dic = parse_flexreport(os.path.join(histdir, report),
                            section = ['Time Period Performance Statistics',
                                       'Cumulative Performance Statistics',
                                       'Performance by Symbol'])       
@@ -327,11 +331,11 @@ for i, report in enumerate(report_list):
         per = 'YTD '
         # height = 19.65
    
-    #for Newsletter    
+    #for Newsletter
     plot_bar_line(ret,
                   dicclrs,
-                  # datadir= maindir+'Data/Factsheet_Inception_2022-04-30/', 
-                  datadir=maindir+datadir, 
+                  # datadir= maindir+'Data/Factsheet_Inception_2022-04-30/',
+                  datadir=os.path.join(maindir, datadir), 
                   plotname='_nl '+str(i+2)+'- Plot '+per+ret.columns[0]+' and '+ret.columns[1]+' Returns',
                   yscale = 'linear', base =1,
                   ytext = "Return (%)",
@@ -340,8 +344,8 @@ for i, report in enumerate(report_list):
     #for Factsheet
     plot_bar_line(ret,
                   dicclrs,
-                  # datadir= maindir+'Data/Factsheet_Inception_2022-04-30/', 
-                  datadir=maindir+datadir, 
+                  # datadir= maindir+'Data/Factsheet_Inception_2022-04-30/',
+                  datadir=os.path.join(maindir, datadir),
                   plotname='_fs '+str(i+2)+'- Plot '+per+ret.columns[0]+' and '+ret.columns[1]+' Returns',
                   yscale = 'linear', base =1,
                   ytext = "Return (%)",
@@ -364,7 +368,7 @@ for i, report in enumerate(report_list):
 
     if report == report_list[0]: 
         contrib_LM = contrib.set_index('Symbol')
-        contrib_LM.to_csv(maindir+datadir+'Contributors_'+eend[:-1]+'.csv')
+        contrib_LM.to_csv(os.path.join(maindir, datadir, 'Contributors_' + eend[:-1] + '.csv'))
         contrib_list = contrib['Symbol'].to_list()
     contrib.Contribution = contrib.Contribution.apply("{:.3f}%".format)
     
@@ -374,7 +378,7 @@ for i, report in enumerate(report_list):
     else: coef = 1.55 #1.5 by default
     
     stat_html(contrib.set_index('Symbol'),
-              maindir+datadir+ filename, 
+              os.path.join(maindir, datadir, filename), 
               # maindir+datadir,
               resolution = 200, isLastRow = False, isWriteHTML = False,
               table_width = '100%', row_height = "100%;",
@@ -392,7 +396,7 @@ for i, report in enumerate(report_list):
     height = step * (1+contrib20.shape[0])
     filename = '_fs '+str(i+2)+'- Contributors ' + periodcontrib    
     stat_html(contrib20.set_index('Symbol'),
-              maindir+datadir+ filename, 
+              os.path.join(maindir, datadir, filename), 
               # maindir+datadir,
               resolution = 200, isLastRow = False, isWriteHTML = False,
               table_width = '100%', row_height = '29px;',
@@ -402,12 +406,12 @@ for i, report in enumerate(report_list):
 
 
     if report == report_list[0]: #Last Month
-        remove(maindir+datadir+'_fs 2- Contributors '+ periodcontrib +'.png')
+        remove(os.path.join(maindir, datadir, '_fs 2- Contributors ')+ periodcontrib +'.png')
     
 #%%
 ## ======= YTD Section ========
 # New index -monthly returns
-from Benchmark_new_2026_05 import benchmark_update
+from Benchmark_new_2025 import benchmark_update
 etf_df= benchmark_update(startday = '2024-01-01')
 
 bm_df=etf_df.loc['2024':new_end, ['New bechmark-1 (3 ETF weighted)', 'New bechmark-3 (3 ETF equally)']]
@@ -422,7 +426,7 @@ bm_new.index=bm_new.index.to_period('M')
 
 # From 'Eurekahedge North America Long Short Equities HF Index.csv' - mothly returns
 print('Loading Eureka Hedge Index monthly returns...')
-erk = pd.read_csv(indexdir+'Eurekahedge North America Long Short Equities HF Index.csv', 
+erk = pd.read_csv(os.path.join(indexdir, 'Eurekahedge North America Long Short Equities HF Index.csv'), 
                   index_col=[0], infer_datetime_format=True)['Return']
 erk.index= pd.to_datetime(erk.index).to_period('M')
 erk.rename('Old benchmark (EurekaHedge N.America)', inplace=True)
@@ -430,7 +434,7 @@ erk=erk.loc[:'2024-12']
 
 # Load SPY - monthly returns
 print('Loading SPY monthly returns...')
-spy= pd.read_csv(histdir+'SPY_returns_Monthly.csv', 
+spy= pd.read_csv(os.path.join(histdir, 'SPY_returns_Monthly.csv'), 
                  index_col=[0], infer_datetime_format=True).squeeze()
 spy.index=pd.to_datetime(spy.index).to_period('M')
 spy.rename('S&P500 (SPY)', inplace=True)
@@ -474,8 +478,8 @@ print('ARQuant gross: {:.2f}%'.format(((1+ak_monthly.loc[str(new_end.year)]).pro
 # print('ARQuant net: {:.2f}%'.format(((1+ak_net_monthly.iloc[-3:]).prod()-1)*100), ' for ', erk.index[-3:])
 # print('ARQuant net: {:.2f}%'.format(((1+ak_net_monthly.iloc[-6:]).prod()-1)*100), ' for ', erk.index[-6:])
 
-bm_new.to_csv(maindir+datadir+'New benchmark (ETF basket).csv')
-erk.to_csv(maindir+datadir+'Old benchmark (EurekaHedge N.America).csv')
+bm_new.to_csv(os.path.join(maindir, datadir, 'New benchmark (ETF basket).csv'))
+erk.to_csv(os.path.join(maindir, datadir, 'Old benchmark (EurekaHedge N.America).csv'))
 
 #%%
 # Align dates for ARQuant and benchmarks, then save
@@ -488,7 +492,7 @@ dfs2=[dfs1,
       erk]
 dfs2=pd.concat(dfs2, axis=1, join='outer')
 dfs2=dfs2.loc[dfs1.index]
-dfs2.to_csv(maindir+datadir+'ARQuant vs Benchmarks.csv')
+dfs2.to_csv(os.path.join(maindir, datadir, 'ARQuant vs Benchmarks.csv'))
 
 dfs3=dfs2.copy()
 
@@ -510,7 +514,7 @@ dfs_wealth['New bechmark (ETF basket)'].loc['2023-12':]=dfs_wealth['New bechmark
 #for Newsletter
 plot_for_print(dfs_wealth, 
                dicclrs,
-               datadir=maindir+datadir, 
+               datadir=os.path.join(maindir, datadir), 
                yscale = 'log', base =100,
                marker=[None,None,None,None,None],
                ytext = "Net Return Index (Log scale)",
@@ -521,7 +525,7 @@ plot_for_print(dfs_wealth,
 #for Factsheet
 plot_for_print(dfs_wealth, 
                dicclrs,
-               datadir=maindir+datadir, 
+               datadir=os.path.join(maindir, datadir), 
                yscale = 'log', base =100,
                marker=[None,None,None,None,None],
                ytext = "Net Return Index (Log scale)",
@@ -577,7 +581,7 @@ returns.loc[returns.index[4:],'New bechmark (ETF basket)']=np.nan
 returns.loc[returns.index[0:4],'Old benchmark (EurekaHedge N.America)']=np.nan
 
 returns.index.rename('Returns (%)', inplace=True)
-(returns *100).astype(float).round(2).to_csv(maindir+datadir+'Returns summary.csv')
+(returns *100).astype(float).round(2).to_csv(os.path.join(maindir, datadir, 'Returns summary.csv'))
 
 #%%
 # Risk/Return
@@ -605,11 +609,15 @@ stats.loc['Annualized Return']= ( root12( (1+dfs3).prod() )-1 ).values
 stats.loc['Annualized Stdev'] = stats.loc['Std.Deviation']*np.sqrt(12)
 
 #Risk Free Rate
-def RFR_load(tBill='TB3MS'): # 3-month T-Bill as of month start
-    import pandas_datareader as pdr
-    z=pdr.DataReader(tBill, 'fred')
-    if isinstance(z, pd.DataFrame): z=z.squeeze()
-    return z.iloc[-1]/100
+def RFR_load(tBill='TB3MS', fallback=0.0425): # 3-month T-Bill as of month start
+    try:
+        import pandas_datareader as pdr
+        z=pdr.DataReader(tBill, 'fred')
+        if isinstance(z, pd.DataFrame): z=z.squeeze()
+        return z.iloc[-1]/100
+    except Exception as e:
+        print(f'Warning: Failed to fetch RFR from FRED ({type(e).__name__}). Using fallback={fallback:.2%}')
+        return fallback
 
 #Sharpe Ratio
 stats.loc['Risk Free Rate'] = [ RFR_load(),]*stats.shape[1]
@@ -632,7 +640,7 @@ stats.loc['Max Drawdown (%)'] = maxDD(dfs3) *(-1.)
 stats.loc[~stats.index.isin(['Sharpe Ratio'])] = (stats.loc[~stats.index.isin(['Sharpe Ratio'])] *100).round(2)
 
 stats.index.rename('Risk/Return', inplace=True)
-stats.to_csv(maindir+datadir+'Risk vs Return since incepton.csv')
+stats.to_csv(os.path.join(maindir, datadir, 'Risk vs Return since incepton.csv'))
 
 #%%
 # #for ARQ fund newsletter
@@ -644,7 +652,7 @@ stats.to_csv(maindir+datadir+'Risk vs Return since incepton.csv')
 # afund.drop(['3 Month', '2 Year Ann.', '4 Year Ann.'], axis=1, inplace=True)
 # afund=afund.reindex(columns=['Since Inception', 'Ann.Vol.',  '3 Year Ann.', '1 Year', 
 #                        'YTD', '6 Month', '1 Month'])
-# afund.to_csv(maindir+datadir+'ARQ fund vs benchmarks.csv')
+# afund.to_csv(os.path.join(maindir, datadir, 'ARQ fund vs benchmarks.csv'))
 
 #%%
 from os import chdir
@@ -654,7 +662,7 @@ from Slides_for_print_function import stat_html
 ##Make a picture for Risk/Return
 #for Newsletter
 stat_html(stats, 
-          maindir+datadir+'_nl 4- Risk_Return', 
+          os.path.join(maindir, datadir, '_nl 4- Risk_Return'), 
           resolution = 200,isLastRow = False, isWriteHTML = False,
           table_width = '100%;', 
           row_height = '23.1px;',
@@ -664,7 +672,7 @@ stat_html(stats,
           size ='width: 23cm; height: 8.5cm;')
 #for Factsheet
 stat_html(stats, 
-          maindir+datadir+'_fs 4- Risk_Return', 
+          os.path.join(maindir, datadir, '_fs 4- Risk_Return'), 
           resolution = 200,isLastRow = False, isWriteHTML = False,
           table_width = '100%;', 
           row_height = '38.7px;', #change here
@@ -682,7 +690,7 @@ returns3=returns2.drop(['7 Year Ann.','8 Year Ann.'], axis=0)
 
 #for Newsletter
 stat_html(returns3, 
-          maindir+datadir+'_nl 4- Returns summary', 
+          os.path.join(maindir, datadir, '_nl 4- Returns summary'), 
           resolution = 200, isLastRow = False, isWriteHTML = False,
           table_width = '100%;', 
            row_height = '22px;',
@@ -692,7 +700,7 @@ stat_html(returns3,
           size ='width: 23cm; height: 8.425cm;')
 #for Factsheet
 stat_html(returns3, 
-          maindir+datadir+'_fs 4- Returns summary', 
+          os.path.join(maindir, datadir, '_fs 4- Returns summary'), 
           resolution = 200, isLastRow = False, isWriteHTML = False,
           table_width = '100%;', 
           row_height = '26px;',
@@ -710,12 +718,12 @@ ak_stats_LM = summary_stats2(andrew_ret.loc[new_end.strftime('%Y-%m')],
                           )
 # from Slides_for_print_function import stats_periods_for_print
 # ak_stats_LM_for_print=stats_periods_for_print(ak_stats_LM.squeeze())
-ak_stats_LM.T.to_csv(maindir+datadir+'Stats Last month.csv')
+ak_stats_LM.T.to_csv(os.path.join(maindir, datadir, 'Stats Last month.csv'))
 
 #%%
 #VIX weekly volatility
 # Load datasets ****
-vix_daily=pd.read_csv(histdir+'VIXCLS_prices.csv')
+vix_daily=pd.read_csv(os.path.join(histdir, 'VIXCLS_prices.csv'))
 vix_daily=vix_daily.set_index('Date')
 vix_daily.index=pd.to_datetime(vix_daily.index)
 vix_daily=vix_daily.loc[new_start:new_end]
@@ -729,7 +737,7 @@ vix_daily_LM=vix_daily.loc[f'{lastyear}-{lastmonth}'].squeeze()
 vix_w=vix_daily_LM.resample("W-Fri").mean().rename('VIX Weekly Average')
 vix_w_hl=vix_daily_LM.resample("W-Fri").apply(np.ptp).rename('VIX Weekly HL')
 
-pd.concat([vix_w,vix_w_hl],axis=1).to_csv(maindir+datadir+'VIX weekly volatility.csv')
+pd.concat([vix_w,vix_w_hl],axis=1).to_csv(os.path.join(maindir, datadir, 'VIX weekly volatility.csv'))
 
 #%%
 '''
@@ -762,7 +770,7 @@ for tkr in contrib_list:
     mfi_df=pd.concat([mfi_df, mfi], axis=1, join = 'inner')
 
 adx_df=adx_df.loc[year_month]
-adx_df.to_csv(histdir+'Contributors_ADX_daily.csv')
+adx_df.to_csv(os.path.join(histdir, 'Contributors_ADX_daily.csv'))
 #%%
 spyd = TIINGO_load('SPY',
                   metric_name=None,
