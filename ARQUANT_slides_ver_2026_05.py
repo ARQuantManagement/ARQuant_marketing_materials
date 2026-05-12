@@ -59,7 +59,7 @@ report_list2= ['ARQuant_Management_Limited_'+ eend + eend+'daily.csv',
 files_list = listdir(histdir)
 def is_daily_monthly_exist(report_list2, files_list):
     check = True
-    for i, val in enumerate(report_list2):
+    for _, val in enumerate(report_list2):
         check = check * (val in files_list)
     return True if check == 1 else False
 
@@ -102,7 +102,12 @@ condition3 = (dt.datetime.today().month ==2) and (last_update_month==12) #now Ja
 
 from Update_dataset_ARQuant_slides_2026_05 import * #HFR and French-Fama updates - NOT IN USE
 ARQuant_history_update(report_list[0])
-update_dataset()
+try:
+    update_dataset()
+except Exception as e:
+    print(f"\n⚠️ Warning: Could not update dataset from FRED (timeout/network issue)")
+    print(f"Error: {type(e).__name__}: {str(e)[:100]}")
+    print("Continuing with existing data...\n")
 
 #%%
 
