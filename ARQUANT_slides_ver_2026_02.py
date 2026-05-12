@@ -21,14 +21,16 @@ from os import chdir, listdir, path, rename, makedirs
 from os import stat as os_stat
 import datetime as dt
 from importlib import reload
+import os
 
 computer = '/Users/alexander/' #Moscow Macbook
 # computer= '/Users/alexander/Library/CloudStorage/' #Nice Macbook
 
-maindir= computer + 'Dropbox/5-Finance/myARQuant/Python/'
+script_dir = os.path.dirname(os.path.abspath(__file__))
+maindir = script_dir
 librarydir= computer +'Dropbox/0-ML/Python/GoTrader/'
-histdir= computer + 'Dropbox/5-Finance/myARQuant/Python/Data/ARQuant_history/'
-indexdir = computer +'Dropbox/5-Finance/myARQuant/Python/Data/Indexes/'
+histdir= os.path.join(script_dir, '..', 'Data', 'ARQuant_history')
+indexdir = os.path.join(script_dir, '..', 'Data', 'Indexes')
 
 arsenydir = 'Presentation_Inputs/'
 intdir = 'Internal_Use/'
@@ -39,7 +41,7 @@ from Slides_analytic_function import *
 
 #%%
 new_start='2018-03-01'
-new_end = '2025-12-31' #+manually change for Q1 _monthly
+new_end = '2026-04-30' #+manually change for Q1 _monthly
 
 year_month = dt.datetime.strptime(new_end, '%Y-%m-%d').strftime('%Y-%m')
 eend = dt.datetime.strptime(new_end, '%Y-%m-%d').strftime('%B_%Y_')
@@ -70,13 +72,13 @@ else:
     sys.exit()  
     
 List_of_files=[
-    histdir+'AVESA_Group_Ltd_U3577443_history.csv',
-    indexdir+'HFRI_Quant_Directional.csv',
-    indexdir+'Eurekahedge North America Long Short Equities HF Index.csv',
-    histdir+'French_Fama_approximation.csv',
-    histdir+'Frecn_Fama_daily.csv',
-    histdir+'Frecn_Fama_monthly.csv',
-    histdir+'Risk_Free_Rate_monthly.csv',
+    os.path.join(histdir, 'AVESA_Group_Ltd_U3577443_history.csv'),
+    os.path.join(indexdir, 'HFRI_Quant_Directional.csv'),
+    os.path.join(indexdir, 'Eurekahedge North America Long Short Equities HF Index.csv'),
+    os.path.join(histdir, 'French_Fama_approximation.csv'),
+    os.path.join(histdir, 'Frecn_Fama_daily.csv'),
+    os.path.join(histdir, 'Frecn_Fama_monthly.csv'),
+    os.path.join(histdir, 'Risk_Free_Rate_monthly.csv'),
     ]
 
 List_of_last_months=[]
@@ -99,8 +101,8 @@ condition3 = (dt.datetime.today().month ==2) and (last_update_month==12) #now Ja
   # Update ARQuant, HFRI and EurekaHedge indexes
 
 from Update_dataset_ARQuant_slides_2025_10 import * #HFR and French-Fama updates - NOT IN USE
-# ARQuant_history_update(report_list[0])
-# update_dataset()
+ARQuant_history_update(report_list[0])
+update_dataset()
 
 #%%
 
@@ -109,21 +111,21 @@ params={
         # 'new_start': '2018-03-01', 
         # 'new_end' : '2022-10-31',
         'inception' : '2018-03-01',
-        'fs_years' : ['2018', '2019', '2020', '2021', '2022', '2023', '2024','2025'],
+        'fs_years' : ['2018', '2019', '2020', '2021', '2022', '2023', '2024','2025','2026'],
         'file_returns' : 'AVESA_Group_Ltd_U3577443_history.csv',
         'analytic_periods_stats' : ['Inception', '2018', '2019', '2020', '2021', '2022', '2023','L12M', 'YTD', 'L3M'] ,
         'analytic_periods_ff' : ['Inception','2018','2019','2020','2021','2022','2023','L12M','YTD'] ,
         'analytic_periods_plot' : ['Inception','L36M',],
         'investor_periods_stats' : ['Inception','L36M',
                                     'L12M','YTD',
-                                    '2018','2019','2020','2021','2022','2023','2024','2025'] , #YTD
+                                    '2018','2019','2020','2021','2022','2023','2024','2025','2026'] , #YTD
         'investor_periods_ff' : ['Inception','L36M','2018','2019','2020','2021','2022','2023','L12M'] ,
         'investor_periods_plot' : ['Inception'] ,
         'isForWeb' : True ,
         'isForPP' : True,
         'PP_pages_stat' : {'P1':['Inception', 
                                  '2024', 
-                                  '2025',
+                                  '2025','2026',
                                  ],
                            'P2':['2021', '2022', '2023'],
                            'P3':['2018', '2019', '2020']
@@ -196,7 +198,7 @@ if new_start.strftime("%Y-%m-%d")==inception:
 else:
     _period=new_start.strftime('%Y-%m-%d')+'_'+new_end.strftime('%Y-%m-%d')
         
-datadir = 'Data/Presentation_' + _period +'/'
+datadir = '../Data/Presentation_' + _period +'/'
 makedirs(maindir+datadir, exist_ok=True)
 makedirs(maindir+datadir+intdir, exist_ok=True)
 makedirs(maindir+datadir+arsenydir, exist_ok=True)

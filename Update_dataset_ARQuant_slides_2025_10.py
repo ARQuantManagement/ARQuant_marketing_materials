@@ -12,32 +12,37 @@ def ARQuant_history_update(arq_append):
     # from importlib import reload
     # import IBKR_FTP_delivery
     # from os import chdir, listdir #, rename
-    maindir='/users/alexander/Dropbox/5-Finance/myARQuant/Python/'
-    histdir='/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/ARQuant_history/'
-    ftpdir='/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/FTP/'
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    maindir = script_dir
+    histdir = os.path.join(script_dir, '..', 'Data', 'ARQuant_history')
+    ftpdir = os.path.join(script_dir, '..', 'Data', 'FTP')
     strategydir ='Strategy Summary/Inputs/' 
     
     #Update History of Daily Returns
-    os.chdir('/users/alexander/Dropbox/5-Finance/myARQuant/Python/')
+    os.chdir(maindir)
     from Slides_analytic_function import update_return_history_v4
     
-    update_return_history_v4(f_history =histdir+'AVESA_Group_Ltd_U3577443_history.csv',
-                             f_last_month=histdir+arq_append)
+    update_return_history_v4(f_history =os.path.join(histdir, 'AVESA_Group_Ltd_U3577443_history.csv'),
+                             f_last_month=os.path.join(histdir, arq_append))
     return print('\n*** ARQuant history has been updated ***')
 
 #ARQuant_history_update
     #%%
-def update_dataset(indexdir = '/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/Indexes/'):
+def update_dataset(indexdir = None):
         
     import os 
     import pandas as pd
     # from importlib import reload
     # import IBKR_FTP_delivery
     # from os import chdir, listdir #, rename
-    maindir='/users/alexander/Dropbox/5-Finance/myARQuant/Python/'
-    histdir='/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/ARQuant_history/'
-    ftpdir='/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/FTP/'
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    maindir = script_dir
+    histdir = os.path.join(script_dir, '..', 'Data', 'ARQuant_history')
+    ftpdir = os.path.join(script_dir, '..', 'Data', 'FTP')
     strategydir ='Strategy Summary/Inputs/' 
+    
+    if indexdir is None:
+        indexdir = os.path.join(script_dir, '..', 'Data', 'Indexes')
     
     start = "2018-02-28"
     currdir =os.getcwd()

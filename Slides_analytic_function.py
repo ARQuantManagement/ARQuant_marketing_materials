@@ -147,10 +147,18 @@ def update_return_history_v2(datadir, datadir0, year_1, month_1,
     return
 # update_return_history_v2()
 
-def update_return_history_v3(f_history='/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/ARQuant_history/'+'AVESA_Group_Ltd_U3577443_history.csv', 
-                             f_last_month='/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/FTP/'+'AVESA_Group_Ltd_U3577443_July_01_2022_July_28_2022.csv',
-                             histdir='/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/ARQuant_history/',
+def update_return_history_v3(f_history=None, 
+                             f_last_month=None,
+                             histdir=None,
                              isSave = True):
+    if histdir is None:
+        import os
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        histdir = os.path.join(script_dir, '..', 'Data', 'ARQuant_history')
+    if f_history is None:
+        f_history = os.path.join(histdir, 'AVESA_Group_Ltd_U3577443_history.csv')
+    if f_last_month is None:
+        f_last_month = os.path.join(histdir, '..', 'FTP', 'AVESA_Group_Ltd_U3577443_July_01_2022_July_28_2022.csv')  # this might need adjustment
 
     if f_history=='' or f_last_month=='':
         print('\nPlease give file names for update...')
@@ -242,10 +250,18 @@ def myread_csv(input_file,
                      )    
     return df
 
-def update_return_history_v4(f_history='/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/ARQuant_history/'+'AVESA_Group_Ltd_U3577443_history.csv', 
-                             f_last_month='/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/ARQuant_history/'+'ARQuant_Management_Limited_September_2025_September_2025_daily.csv',
-                             # histdir='/users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/ARQuant_history/',
+def update_return_history_v4(f_history=None,
+                             f_last_month=None,
+                             histdir=None,
                              isSave = True):
+    if histdir is None:
+        import os
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        histdir = os.path.join(script_dir, '..', 'Data', 'ARQuant_history')
+    if f_history is None:
+        f_history = os.path.join(histdir, 'AVESA_Group_Ltd_U3577443_history.csv')
+    if f_last_month is None:
+        f_last_month = os.path.join(histdir, 'ARQuant_Management_Limited_September_2025_September_2025_daily.csv')
 
     if f_history=='' or f_last_month=='':
         print('\nPlease give file names for update...')

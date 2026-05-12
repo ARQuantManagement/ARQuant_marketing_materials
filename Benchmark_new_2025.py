@@ -17,10 +17,18 @@ def benchmark_update(etf_list=[
                               'EQLS'
                               ],
                     startday = '2018-02-28',
-                    maindir='/Users/alexander/Dropbox/5-Finance/myARQuant/Python/',
-                    histdir='/Users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/ARQuant_history/',
-                    datadir='/Users/alexander/Dropbox/5-Finance/myARQuant/Python/Data/Benchmark/',
+                    maindir=None,
+                    histdir=None,
+                    datadir=None,
                     ):
+    if maindir is None:
+        import os
+        maindir = os.path.dirname(os.path.abspath(__file__))
+    if histdir is None:
+        histdir = os.path.join(maindir, '..', 'Data', 'ARQuant_history')
+    if datadir is None:
+        datadir = os.path.join(maindir, '..', 'Data', 'Benchmark')
+    
     import pandas as pd
     from os import chdir
     chdir(maindir)
@@ -72,16 +80,18 @@ if __name__ == '__main__':
     from os import stat as os_stat
     import datetime as dt
     from importlib import reload
+    import os
     
     computer = '/Users/alexander/' #Moscow Macbook
     # computer= '/Users/alexander/Library/CloudStorage/' #Nice Macbook
     
-    maindir= computer + 'Dropbox/5-Finance/myARQuant/Python/'
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    maindir = script_dir
     librarydir= computer +'Dropbox/0-ML/Python/GoTrader/'
-    histdir= computer + 'Dropbox/5-Finance/myARQuant/Python/Data/ARQuant_history/'
-    indexdir = computer +'Dropbox/5-Finance/myARQuant/Python/Data/Indexes/'
+    histdir = os.path.join(script_dir, '..', 'Data', 'ARQuant_history')
+    indexdir = os.path.join(script_dir, '..', 'Data', 'Indexes')
     
-    datadir = computer + 'Dropbox/5-Finance/myARQuant/Python/Data/Benchmark/'
+    datadir = os.path.join(script_dir, '..', 'Data', 'Benchmark')
     #%%
     
     etf_df= benchmark_update()
