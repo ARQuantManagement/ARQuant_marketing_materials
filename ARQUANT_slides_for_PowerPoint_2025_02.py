@@ -10,7 +10,7 @@ maindir='/users/alexander/Dropbox/5-Finance/myARQuant/Python/'
 datadir='Data/Presentation_Inception_2023-01-31/'
 arsenydir = 'Presentation_Inputs/'
 
-def update_PowerPoint(maindir, datadir, arsenydir, 
+def update_PowerPoint(maindir, datadir, arsenydir,
                       pages_stat = {'P1':['Inception', 'L36M', '2022'],
                                     'P2':['2018', '2019', '2020', '2021']} ,
                       pages_ff = {'P1':['Inception', 'L36M', 'L12M'],
@@ -19,14 +19,15 @@ def update_PowerPoint(maindir, datadir, arsenydir,
                       wsize_ff = {'P1':'10cm;', 'P2':'14cm;'},
                       resolution = 300, pct='', drop_list = [],
                       ):
-    print('\n')  
+    print('\n')
     print('*** Preparing tables and plots for PowerPoint ***')
-    
+
+    import os
     from os import chdir, makedirs
     import pandas as pd 
     
     ppdir='PowerPoint/'
-    makedirs(maindir+datadir+arsenydir+ppdir, exist_ok=True)
+    makedirs(os.path.join(maindir, datadir, arsenydir, ppdir), exist_ok=True)
 
     ## PRINTING and PLOTING for Slides 5, 6, 7, 8, 9
     chdir(maindir)
@@ -54,9 +55,9 @@ def update_PowerPoint(maindir, datadir, arsenydir,
     # from Slides_for_print_function import ff_html
     from Slides_for_print_function import camp_html
 
-    ak_stats_ =pd.read_pickle(maindir+datadir+arsenydir+'Stats.pkl')
-    
-    bt_all_ =pd.read_pickle(maindir+datadir+arsenydir+'FF3x2.pkl')
+    ak_stats_ =pd.read_pickle(os.path.join(maindir, datadir, arsenydir, 'Stats.pkl'))
+
+    bt_all_ =pd.read_pickle(os.path.join(maindir, datadir, arsenydir, 'FF3x2.pkl'))
     
      ## Preparing French-Fama model for Slide 8
         # Make as % and reduce decimals
@@ -65,7 +66,7 @@ def update_PowerPoint(maindir, datadir, arsenydir,
     bt=bt.T
     # bt.index.rename('Periods', inplace=True)
 
-    camp_html(bt, maindir+datadir+arsenydir+ppdir+'CAMP_for_slides',
+    camp_html(bt, os.path.join(maindir, datadir, arsenydir, ppdir, 'CAMP_for_slides'),
               size = 'width: 10cm; height: 9.2cm;', row_height = '40px;',
               col_space=None, col_formatter=['40%', '30%', '30%'],
               isLastRow = False, resolution = resolution)   
@@ -80,7 +81,7 @@ def update_PowerPoint(maindir, datadir, arsenydir,
     
     ##Slide 7 - Preparing Statistics
         stat_html(ak_stats_for_print, 
-                  maindir+datadir+arsenydir+ppdir+'Stats_for_slides_'+page,
+                  os.path.join(maindir, datadir, arsenydir, ppdir, 'Stats_for_slides_'+page),
                   size = 'width: '+ wsize_stat[page]+' height: 18.1cm;', 
                   isLastRow = False, bcolor='#f0997a;', resolution = resolution)
         
@@ -95,9 +96,9 @@ def update_PowerPoint(maindir, datadir, arsenydir,
     
     ## Preparing Factsheet for Slide 9
     from Slides_for_print_function import f_fsnet, factsheet_html
-    fs_net=pd.read_csv(maindir+datadir+arsenydir+'Fact_Sheet_after_fees.csv', index_col=[0])
+    fs_net=pd.read_csv(os.path.join(maindir, datadir, arsenydir, 'Fact_Sheet_after_fees.csv'), index_col=[0])
     factsheet_html(f_fsnet(fs_net,pct=pct), 
-                   maindir+datadir+arsenydir+ppdir+'Fact_sheet_after_fees',
+                   os.path.join(maindir, datadir, arsenydir, ppdir, 'Fact_sheet_after_fees'),
                    isLastRow = False,
                    table_width = '100%;', col_width = '7.2%;',
                    # row_height = '50%;',
@@ -107,16 +108,16 @@ def update_PowerPoint(maindir, datadir, arsenydir,
                    resolution = resolution)
     
     from shutil import copyfile
-    copyfile(maindir+datadir+arsenydir+'Fact_Sheet_after_fees.csv',
-             maindir+datadir+arsenydir+ppdir+'Fact_sheet_after_fees.csv')
+    copyfile(os.path.join(maindir, datadir, arsenydir, 'Fact_Sheet_after_fees.csv'),
+             os.path.join(maindir, datadir, arsenydir, ppdir, 'Fact_sheet_after_fees.csv'))
     
     ## Copying plots
     from shutil import copyfile
-    copyfile(maindir+datadir+'Internal_use/Plots/'+'ARQuant_vs_Benchmarks_Inception.png',
-             maindir+datadir+arsenydir+ppdir+'ARQuant_vs_Benchmarks_Inception.png')
+    copyfile(os.path.join(maindir, datadir, 'Internal_use', 'Plots', 'ARQuant_vs_Benchmarks_Inception.png'),
+             os.path.join(maindir, datadir, arsenydir, ppdir, 'ARQuant_vs_Benchmarks_Inception.png'))
     
-    copyfile(maindir+datadir+'Internal_use/Plots/'+'Drawdoans_Periods_Inception.png',
-             maindir+datadir+arsenydir+ppdir+'Drawdoans_Periods_Inception.png')
+    copyfile(os.path.join(maindir, datadir, 'Internal_use', 'Plots', 'Drawdoans_Periods_Inception.png'),
+             os.path.join(maindir, datadir, arsenydir, ppdir, 'Drawdoans_Periods_Inception.png'))
     
        
     print('*** Tables and plots for PowerPoint are completed ***')
@@ -142,7 +143,7 @@ def update_PowerPoint_SPY(maindir, datadir, arsenydir,
     import pandas as pd 
     
     ppdir='PowerPoint/'
-    makedirs(maindir+datadir+arsenydir+ppdir, exist_ok=True)
+    makedirs(os.path.join(maindir, datadir, arsenydir, ppdir), exist_ok=True)
 
     ## PRINTING and PLOTING for Slides 5, 6, 7, 8, 9
     chdir(maindir)
@@ -154,9 +155,9 @@ def update_PowerPoint_SPY(maindir, datadir, arsenydir,
     # from Slides_for_print_function import ff_html
     # from Slides_for_print_function import camp_html
 
-    ak_stats_ =pd.read_pickle(maindir+datadir+arsenydir+'Stats.pkl')
+    ak_stats_ =pd.read_pickle(os.path.join(maindir, datadir, arsenydir, 'Stats.pkl'))
     # ak_stats_ = ak_stats_.drop(drop_list, axis=0)
-    # bt_all_ =pd.read_pickle(maindir+datadir+arsenydir+'FF3x2.pkl')
+    # bt_all_ =pd.read_pickle(os.path.join(maindir, datadir, arsenydir, 'FF3x2.pkl'))
     
      ## Preparing French-Fama model for Slide 8
         # Make as % and reduce decimals
@@ -181,7 +182,7 @@ def update_PowerPoint_SPY(maindir, datadir, arsenydir,
         
             ##Slide 7 - Preparing Statistics
             stat_html(ak_stats_for_print, 
-                      maindir+datadir+arsenydir+ppdir+'Stats_for_slides_'+page,
+                      os.path.join(maindir, datadir, arsenydir, ppdir, 'Stats_for_slides_'+page),
                       size = 'width: '+ wsize_stat[page]+' height: 18.1cm;', 
                       isLastRow = False, bcolor='#f0997a;', resolution = resolution)
         
@@ -198,9 +199,9 @@ def update_PowerPoint_SPY(maindir, datadir, arsenydir,
     
     ## Preparing Factsheet for Slide 9
     from Slides_for_print_function import f_fsnet, factsheet_html
-    fs_net=pd.read_csv(maindir+datadir+arsenydir+'Fact_Sheet_after_fees.csv', index_col=[0])
+    fs_net=pd.read_csv(os.path.join(maindir, datadir, arsenydir, 'Fact_Sheet_after_fees.csv'), index_col=[0])
     factsheet_html(f_fsnet(fs_net,pct=pct), 
-                   maindir+datadir+arsenydir+ppdir+'Fact_sheet_after_fees',
+                   os.path.join(maindir, datadir, arsenydir, ppdir, 'Fact_sheet_after_fees'),
                    isLastRow = False,
                    table_width = '100%;', col_width = '7.2%;',
                    # row_height = '50%;',
@@ -210,16 +211,16 @@ def update_PowerPoint_SPY(maindir, datadir, arsenydir,
                    resolution = resolution)
     
     from shutil import copyfile
-    copyfile(maindir+datadir+arsenydir+'Fact_Sheet_after_fees.csv',
-             maindir+datadir+arsenydir+ppdir+'Fact_sheet_after_fees.csv')
+    copyfile(os.path.join(maindir, datadir, arsenydir, 'Fact_Sheet_after_fees.csv'),
+             os.path.join(maindir, datadir, arsenydir, ppdir, 'Fact_sheet_after_fees.csv'))
     
     ## Copying plots
     from shutil import copyfile
-    copyfile(maindir+datadir+'Internal_use/Plots/'+'ARQuant_vs_Benchmarks_Inception.png',
-             maindir+datadir+arsenydir+ppdir+'ARQuant_vs_Benchmarks_Inception.png')
+    copyfile(os.path.join(maindir, datadir, 'Internal_use', 'Plots', 'ARQuant_vs_Benchmarks_Inception.png'),
+             os.path.join(maindir, datadir, arsenydir, ppdir, 'ARQuant_vs_Benchmarks_Inception.png'))
     
-    copyfile(maindir+datadir+'Internal_use/Plots/'+'Drawdoans_Periods_Inception.png',
-             maindir+datadir+arsenydir+ppdir+'Drawdoans_Periods_Inception.png')
+    copyfile(os.path.join(maindir, datadir, 'Internal_use', 'Plots', 'Drawdoans_Periods_Inception.png'),
+             os.path.join(maindir, datadir, arsenydir, ppdir, 'Drawdoans_Periods_Inception.png'))
     
        
     print('*** Tables and plots for PowerPoint are completed ***')

@@ -8,14 +8,15 @@ Env GoTrader37_pip
 """
 
 def update_web(maindir, datadir, arsenydir, intdir, filename ='', isAlpha=True):
-    print('\n')  
+    print('\n')
     print('*** Preparing tables and plots for print and website ***')
-    
+
+    import os
     from os import chdir, makedirs
     import pandas as pd 
     
     webdir='Website_slides/'
-    makedirs(maindir+datadir+webdir, exist_ok=True)
+    makedirs(os.path.join(maindir, datadir, webdir), exist_ok=True)
 
     ## PRINTING and PLOTING for Slides 5, 6, 7, 8, 9
     chdir(maindir)
@@ -38,10 +39,10 @@ def update_web(maindir, datadir, arsenydir, intdir, filename ='', isAlpha=True):
              'plotname': 'black'}
             
     ##Preparing Statistics for Screen "How we see the world"
-    ak_stats=pd.read_pickle(maindir+datadir+arsenydir+'Stats.pkl')
+    ak_stats=pd.read_pickle(os.path.join(maindir, datadir, arsenydir, 'Stats.pkl'))
     
     from Slides_for_print_function import f_alpha, f_beta
-    bt_all=pd.read_pickle(maindir+datadir+arsenydir+'FF3x2.pkl')
+    bt_all=pd.read_pickle(os.path.join(maindir, datadir, arsenydir, 'FF3x2.pkl'))
     # Make as % and reduce decimals
     bt=f_alpha(bt_all, row=['Alpha (p.a.)'], decimals=2)
     bt=f_beta(bt, row=['Beta (S&P500)'], decimals=2)    
@@ -63,7 +64,7 @@ def update_web(maindir, datadir, arsenydir, intdir, filename ='', isAlpha=True):
             else:
                 ak_stats_web.loc[row, col] = '-'
         
-    ak_stats_web.to_csv(maindir+datadir+webdir+'Stats_for_web.csv')
+    ak_stats_web.to_csv(os.path.join(maindir, datadir, webdir, 'Stats_for_web.csv'))
     
     # # Make HTML with company styling
     # from Slides_for_print_function import stat_html
@@ -84,13 +85,13 @@ def update_web(maindir, datadir, arsenydir, intdir, filename ='', isAlpha=True):
     # factsheet_html(f_fsnet(fs_net), maindir+datadir+webdir+'Fact_sheet_after_fees')
     
     from shutil import copyfile
-    copyfile(maindir+datadir+intdir+filename,
-             maindir+datadir+webdir+filename)
+    copyfile(os.path.join(maindir, datadir, intdir, filename),
+             os.path.join(maindir, datadir, webdir, filename))
     
     ## Copying plots
     from shutil import copyfile
-    copyfile(maindir+datadir+'Internal_use/Plots/'+'ARQuant_vs_Benchmarks_Inception.png',
-             maindir+datadir+webdir+'ARQuant_vs_Benchmarks_Inception.png')
+    copyfile(os.path.join(maindir, datadir, 'Internal_use', 'Plots', 'ARQuant_vs_Benchmarks_Inception.png'),
+             os.path.join(maindir, datadir, webdir, 'ARQuant_vs_Benchmarks_Inception.png'))
     
     # copyfile(maindir+datadir+'Internal_use/Plots/'+'Drawdoans_Periods_Inception.png',
     #          maindir+datadir+webdir+'Drawdoans_Periods_Inception.png')
@@ -109,7 +110,7 @@ def update_web_SPY(maindir, datadir, arsenydir, intdir, filename ='', isAlpha=Tr
     import pandas as pd 
     
     webdir='Website_slides/'
-    makedirs(maindir+datadir+webdir, exist_ok=True)
+    makedirs(os.path.join(maindir, datadir, webdir), exist_ok=True)
 
     ## PRINTING and PLOTING for Slides 5, 6, 7, 8, 9
     chdir(maindir)
@@ -132,7 +133,7 @@ def update_web_SPY(maindir, datadir, arsenydir, intdir, filename ='', isAlpha=Tr
              'plotname': 'black'}
             
     ##Preparing Statistics for Screen "How we see the world"
-    ak_stats=pd.read_pickle(maindir+datadir+arsenydir+'Stats.pkl')
+    ak_stats=pd.read_pickle(os.path.join(maindir, datadir, arsenydir, 'Stats.pkl'))
     
     # from Slides_for_print_function import f_alpha, f_beta
     # bt_all=pd.read_pickle(maindir+datadir+arsenydir+'FF3x2.pkl')
@@ -157,7 +158,7 @@ def update_web_SPY(maindir, datadir, arsenydir, intdir, filename ='', isAlpha=Tr
     #         else:
     #             ak_stats_web.loc[row, col] = '-'
         
-    ak_stats_web.to_csv(maindir+datadir+webdir+'Stats_for_web.csv')
+    ak_stats_web.to_csv(os.path.join(maindir, datadir, webdir, 'Stats_for_web.csv'))
     
     # # Make HTML with company styling
     # from Slides_for_print_function import stat_html
@@ -178,13 +179,13 @@ def update_web_SPY(maindir, datadir, arsenydir, intdir, filename ='', isAlpha=Tr
     # factsheet_html(f_fsnet(fs_net), maindir+datadir+webdir+'Fact_sheet_after_fees')
     
     from shutil import copyfile
-    copyfile(maindir+datadir+intdir+filename,
-             maindir+datadir+webdir+filename)
+    copyfile(os.path.join(maindir, datadir, intdir, filename),
+             os.path.join(maindir, datadir, webdir, filename))
     
     ## Copying plots
     from shutil import copyfile
-    copyfile(maindir+datadir+'Internal_use/Plots/'+'ARQuant_vs_Benchmarks_Inception.png',
-             maindir+datadir+webdir+'ARQuant_vs_Benchmarks_Inception.png')
+    copyfile(os.path.join(maindir, datadir, 'Internal_use', 'Plots', 'ARQuant_vs_Benchmarks_Inception.png'),
+             os.path.join(maindir, datadir, webdir, 'ARQuant_vs_Benchmarks_Inception.png'))
     
     # copyfile(maindir+datadir+'Internal_use/Plots/'+'Drawdoans_Periods_Inception.png',
     #          maindir+datadir+webdir+'Drawdoans_Periods_Inception.png')
