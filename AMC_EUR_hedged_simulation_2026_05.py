@@ -11,6 +11,8 @@ if '__IPYTHON__' in globals():
 # get_ipython().run_line_magic('matplotlib', 'inline')
     
 import os
+import re
+import shutil
 import numpy as np
 import pandas as pd
 from os import chdir, listdir, path, rename, makedirs, getcwd
@@ -440,4 +442,230 @@ plt.savefig(os.path.join(subdir, '_AMC_simulated_past_performance_plot.png'),
 
 plt.show()
 plt.close()
+
+#%%
+# Monthly update of the ARQuant ETI multilang landing page (OneDrive)
+# Replaces the embedded PERF / METRICS JS literals, the 4 hero-stat values,
+# and rewrites the simulation period-end date string in EN/FR/DE/IT.
+# ETI inception ("May 2026") and the Base Prospectus date ("3 April 2025")
+# are preserved via placeholder protection.
+
+_ETI_MONTHS = {
+    'en_short': ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    'en_long' : ['January','February','March','April','May','June','July','August','September','October','November','December'],
+    'fr_long_l': ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'],
+    'fr_long_u': ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
+    'de_short': ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],
+    'de_long' : ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+    'it_short': ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'],
+    'it_long_l': ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'],
+}
+
+# Anchored contexts whose embedded date must NOT be replaced (ETI inception + prospectus date).
+_ETI_PROTECT_PATTERNS = [
+    re.compile(r'ETI launched (\w+ \d{4})'),
+    re.compile(r'ETI lancé en (\w+ \d{4})'),
+    re.compile(r'ETI-Start (\w+ \d{4})'),
+    re.compile(r'ETI lanciato a (\w+ \d{4})'),
+    re.compile(r'incepted in (\w+ \d{4})'),
+    re.compile(r'a été lancé en (\w+ \d{4})'),
+    re.compile(r'wurde im (\w+ \d{4}) aufgelegt'),
+    re.compile(r'è stato lanciato a (\w+ \d{4})'),
+    re.compile(r'<div class="fact-val">(\w+ \d{4})</div>'),
+    re.compile(r'(?:Base Prospectus|Prospectus de Base|Basisprospekt|Prospetto di Base) (?:dated|daté du|vom|datato) (\d+\.? \w+ \d{4})'),
+]
+
+def _eti_end_period_strings(yyyymm):
+    """Return language-specific representations of a YYYY-MM end period."""
+    y, m = yyyymm.split('-')
+    y = int(y); i = int(m) - 1
+    return {
+        k: f'{_ETI_MONTHS[k][i]} {y}' if k != 'it_short_dot' else f'{_ETI_MONTHS["it_short"][i]}. {y}'
+        for k in ('en_short','en_long','fr_long_l','fr_long_u',
+                  'de_short','de_long','it_long_l','it_short_dot')
+    }
+
+def _eti_protect_dates(html):
+    """Swap protected date strings (inception, prospectus) for unique placeholders.
+    Returns (html, list of (placeholder, original))."""
+    placeholders = []
+    def _replacer(m):
+        date_str = m.group(1)
+        start, end = m.start(1) - m.start(), m.end(1) - m.start()
+        full = m.group(0)
+        ph = f'\x00PROTECTED_{len(placeholders)}\x00'
+        placeholders.append((ph, date_str))
+        return full[:start] + ph + full[end:]
+    for pat in _ETI_PROTECT_PATTERNS:
+        html = pat.sub(_replacer, html)
+    return html, placeholders
+
+def _eti_unprotect_dates(html, placeholders):
+    for ph, original in placeholders:
+        html = html.replace(ph, original)
+    return html
+
+def _eti_format_perf_js(returns):
+    """Build the body of the `const PERF = { ... };` JS object.
+    Input: pd.Series of EUR monthly net returns (decimal), PeriodIndex 'M'."""
+    pct = returns * 100
+    by_year = {}
+    for prd, val in pct.items():
+        if not hasattr(prd, 'year'):
+            prd = pd.Period(prd, freq='M')
+        if prd.year not in by_year:
+            by_year[prd.year] = [None] * 12
+        by_year[prd.year][prd.month - 1] = None if pd.isna(val) else float(val)
+    rows = []
+    for y in sorted(by_year):
+        cells = ['null' if v is None else f'{v:.2f}' for v in by_year[y]]
+        rows.append(f'  {y}: [{", ".join(cells)}],')
+    return '\n' + '\n'.join(rows) + '\n'
+
+def _eti_format_metrics_js(metrics_df):
+    """Build the body of the `const METRICS = [ ... ];` JS array.
+    Columns must already be in order Inception / Since-Jan2021 / L60M / L36M / L12M."""
+    rows = []
+    for col in metrics_df.columns:
+        r = metrics_df[col]
+        rows.append(
+            '  {{ ret: {ret:.2f}, vol: {vol:.2f}, rfr: {rfr:.2f}, '
+            'sharpe: {sh:.2f}, dd: {dd:.2f} }},'.format(
+                ret=float(r['Return ann.']),
+                vol=float(r['Volatility ann.']),
+                rfr=float(r['Risk Free Rate']),
+                sh=float(r['Sharpe']),
+                dd=abs(float(r['Max Drawdown'])),
+            )
+        )
+    return '\n' + '\n'.join(rows) + '\n'
+
+def update_eti_landing_page(html_path, monthly_returns_eur, metrics_df,
+                            period_end_str, previous_period_end=None,
+                            backup=True):
+    """Refresh the ARQuant ETI multilang landing page with the latest EUR-hedged
+    simulation data.
+
+    Replaces the embedded PERF / METRICS JS literals, the 4 hero-stat values
+    (annualised return, Sharpe, max drawdown, cumulative return), and rewrites
+    the simulation period-end date string across EN/FR/DE/IT. ETI inception
+    ("May 2026") and the Base Prospectus date are preserved.
+
+    A `<!-- ARQUANT_DATA_END: YYYY-MM -->` marker is maintained inside <head>
+    so subsequent runs know which previous date to overwrite.
+
+    Parameters
+    ----------
+    html_path : str
+        Absolute path to ARQuant_ETI_Landing_Page_multilang.html.
+    monthly_returns_eur : pd.Series
+        EUR net returns indexed by PeriodIndex 'M' (decimal, e.g. 0.0312).
+    metrics_df : pd.DataFrame
+        Risk/return metrics; columns in order (Inception, Since Jan-2021,
+        L60M, L36M, L12M); rows: 'Return ann.', 'Volatility ann.',
+        'Risk Free Rate', 'Sharpe', 'Max Drawdown' (all in percent except Sharpe).
+    period_end_str : str
+        New simulation end period as 'YYYY-MM'.
+    previous_period_end : str, optional
+        Override for the previous end period when the marker is absent.
+    backup : bool
+        Save a timestamped .bak.<ts> copy before overwriting.
+    """
+    if not os.path.exists(html_path):
+        raise FileNotFoundError(f'ETI landing page not found: {html_path}')
+    if metrics_df.shape[1] < 5:
+        raise ValueError(f'metrics_df must have 5 period columns; got {metrics_df.shape[1]}')
+
+    with open(html_path, encoding='utf-8') as f:
+        html = f.read()
+
+    marker_re = re.compile(r'<!-- ARQUANT_DATA_END: (\d{4}-\d{2}) -->')
+    mk = marker_re.search(html)
+    prev_end = mk.group(1) if mk else (previous_period_end or '2026-04')
+
+    if backup:
+        ts = dt.datetime.now().strftime('%Y%m%d_%H%M%S')
+        shutil.copy2(html_path, f'{html_path}.bak.{ts}')
+
+    # Protect ETI inception / prospectus dates from generic date replacement.
+    html, protected = _eti_protect_dates(html)
+
+    # ── 1. Replace PERF block ────────────────────────────────────────
+    perf_body = _eti_format_perf_js(monthly_returns_eur.dropna())
+    perf_re = re.compile(r'const PERF = \{[^}]*\};', re.DOTALL)
+    if not perf_re.search(html):
+        raise ValueError("Couldn't locate `const PERF = {...};` in HTML.")
+    html = perf_re.sub(f'const PERF = {{{perf_body}}};', html, count=1)
+
+    # ── 2. Replace METRICS block ─────────────────────────────────────
+    metrics_body = _eti_format_metrics_js(metrics_df)
+    metrics_re = re.compile(r'const METRICS = \[[^\]]*\];', re.DOTALL)
+    if not metrics_re.search(html):
+        raise ValueError("Couldn't locate `const METRICS = [...];` in HTML.")
+    html = metrics_re.sub(f'const METRICS = [{metrics_body}];', html, count=1)
+
+    # ── 3. Hero stat values ──────────────────────────────────────────
+    inc = metrics_df.iloc[:, 0]
+    ann_ret = float(inc['Return ann.'])
+    sharpe  = float(inc['Sharpe'])
+    dd      = abs(float(inc['Max Drawdown']))
+    cum_ret = float(((1 + monthly_returns_eur.dropna()).prod() - 1) * 100)
+
+    html = re.sub(
+        r'(<div class="hero-stat-val">)[+\-\d.]+%(\s*</div>\s*<div class="hero-stat-label" data-i18n="hero_stat1_label">)',
+        rf'\g<1>{ann_ret:.2f}%\g<2>', html, count=1)
+    html = re.sub(
+        r'(<div class="hero-stat-val orange">)[+\-\d.]+(\s*</div>\s*<div class="hero-stat-label" data-i18n="hero_stat2_label">)',
+        rf'\g<1>{sharpe:.2f}\g<2>', html, count=1)
+    html = re.sub(
+        r'(<div class="hero-stat-val">)[+\-\d.]+%(\s*</div>\s*<div class="hero-stat-label" data-i18n="hero_stat3_label">)',
+        rf'\g<1>{dd:.2f}%\g<2>', html, count=1)
+    html = re.sub(
+        r'(<div class="hero-stat-val orange">)[+\-\d.]+%(\s*</div>\s*<div class="hero-stat-label" data-i18n="hero_stat4_label">)',
+        rf'\g<1>{cum_ret:+.0f}%\g<2>', html, count=1)
+
+    # ── 4. Period-end date strings (EN/FR/DE/IT) ─────────────────────
+    if prev_end != period_end_str:
+        old_s = _eti_end_period_strings(prev_end)
+        new_s = _eti_end_period_strings(period_end_str)
+        # Longer keys first so e.g. "April 2026" is replaced before "Apr 2026".
+        for key in sorted(old_s, key=lambda k: -len(old_s[k])):
+            if old_s[key] != new_s[key]:
+                html = html.replace(old_s[key], new_s[key])
+
+    # Restore protected dates (inception, prospectus).
+    html = _eti_unprotect_dates(html, protected)
+
+    # ── 5. Update / insert the data-end marker in <head> ─────────────
+    new_marker = f'<!-- ARQUANT_DATA_END: {period_end_str} -->'
+    if mk:
+        html = marker_re.sub(new_marker, html, count=1)
+    else:
+        html = html.replace('<head>', f'<head>\n{new_marker}', 1)
+
+    with open(html_path, 'w', encoding='utf-8') as f:
+        f.write(html)
+
+    print(f'ETI landing page updated: {html_path}')
+    print(f'  Data window: {prev_end} -> {period_end_str}')
+    print(f'  Hero stats : ret={ann_ret:.2f}%  vol={float(inc["Volatility ann."]):.2f}%  '
+          f'sharpe={sharpe:.2f}  dd={dd:.2f}%  cum={cum_ret:+.0f}%')
+
+
+#%%
+# Push the freshly computed simulation into the landing page
+_eti_html_path = os.path.expanduser(
+    '~/Library/CloudStorage/OneDrive-ARQUANTMANAGEMENTLIMITED/'
+    'ARQuant Main Site - Documents/4- Marketing/AMC/_Marketing materials/'
+    'ARQuant_ETI_Landing_Page_multilang.html'
+)
+try:
+    update_eti_landing_page(
+        html_path=_eti_html_path,
+        monthly_returns_eur=dfr_all['eur_returns_hedged_net'].dropna(),
+        metrics_df=metrics_df,
+        period_end_str=period_end,
+    )
+except Exception as _e:
+    print(f'ETI landing page update skipped: {type(_e).__name__}: {_e}')
 
