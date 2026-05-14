@@ -33,7 +33,22 @@ The two main entry-point scripts are:
 Both will `sys.exit()` if the required monthly IBKR CSV input files are missing in `histdir` — check the printed message for which files to download.
 
 Standalone simulation script (separate from the monthly pipeline):
-- `AMC_EUR_hedged_simulation_2026_05.py` — EUR-hedged AMC backtest. Reads `arquant_spy_raw_inputs.xlsx` (sheet `Q2Update`) from `../Data/ETI_EUR_hedged/`, pulls EUR/USD spot (`DEXUSEU`) and 1-month rates (USD T-Bill, EUR Euribor) from FRED, writes outputs to `../Data/ETI_EUR_hedged/<period_end>/`. Reporting window is driven by `period_start` / `period_end` near the top, not `new_end`.
+- `AMC_EUR_hedged_simulation_2026_05.py` — EUR-hedged AMC backtest. Reads `arquant_spy_raw_inputs.xlsx` (sheet `Q2Update`) from `../Data/ETI_EUR_hedged/`, pulls EUR/USD spot (`DEXUSEU`, resampled to **end-of-month**) and 1-month rates (USD T-Bill via FRED `DGS1MO`, EUR Euribor via ECB Data Portal) from external APIs, writes outputs to `../Data/ETI_EUR_hedged/<period_end>/`. Reporting window is driven by `period_start` / `period_end` near the top, not `new_end`.
+
+### EUR-hedged return formula (critical)
+
+The hedge calc uses covered interest parity. **The formula must apply the spot at the start of month t (= end of t-1) and the forward locked in at t-1**, not same-month spot/forward — otherwise the carry-direction inverts and EUR-hedged returns are systematically overstated by ≈ (r_USD − r_EUR)/12 per month. Correct form:
+
+```python
+R_EUR_hedged[t] = (1 + R_USD[t]) * spot.shift(1) / forward.shift(1) - 1
+                ≈ R_USD[t] - (r_USD[t-1] - r_EUR[t-1]) / 12
+```
+
+Equivalently from rates: `(1+R_USD) * (1+r_EUR.shift(1)/12) / (1+r_USD.shift(1)/12) - 1`. The script includes a sanity-check print that compares the realised monthly carry drag against the rate differential and warns if signs diverge. **Don't remove that check** — it's the guardrail against re-inverting the formula. The pre-fix tag `v2026.05-pre-hedge-fix` marks the last commit with the buggy direction.
+
+### Euribor missing-month handling
+
+ECB publishes Euribor 1M monthly averages only after the month closes, so the reporting month is typically missing on first fetch. `AMC_EUR_hedged_simulation_2026_05.py` resolves this automatically: any trailing-NaN month is **carry-forwarded from the previous month's value** (cascades across multiple missing months). The dict `_EURIBOR_OVERRIDES = {'YYYY-MM': value_in_percent}` near the top is an **optional** explicit override — use it when you have an authoritative value better than carry-forward (e.g. from EMMI daily fixing). Each resolution is printed to console: `Euribor 1M [YYYY-MM]: X.XXX% (manual override | ECB not yet published; carried forward)`.
 
 ## Version suffix convention
 

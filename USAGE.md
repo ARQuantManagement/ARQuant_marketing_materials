@@ -136,9 +136,14 @@ landing page on OneDrive.
 
 **What to edit:**
 
-- Line ~32–33:
+- Line ~34–35:
   - `period_start` — usually `'2018-03'` (strategy inception)
   - `period_end` — e.g. `'2026-05'` (the new end of the simulation window)
+- Line ~42 — `_EURIBOR_OVERRIDES` (optional): pin Euribor 1M for a specific
+  `'YYYY-MM'` to a value in percent when you have something more authoritative
+  than carry-forward (e.g. EMMI daily fixing or an internal estimate). If
+  empty, missing trailing months are automatically filled from the previous
+  month — no manual edits required.
 
 > Note: this script uses **`period_start` / `period_end`** in `YYYY-MM`
 > format, not `new_end` like the other two.
@@ -154,6 +159,11 @@ landing page on OneDrive.
   (`FM/M.U2.EUR.RT.MM.EURIBOR1MD_.HSTA`).
   A local CSV cache (`EUR_1m_euribor_cache.csv`) is used automatically when
   the ECB API is unavailable.
+- Financial Modeling Prep: daily prices of `IBCF.DE`
+  (iShares S&P 500 EUR Hedged UCITS ETF Acc, Xetra, EUR, ISIN IE00B3ZW0K18).
+  Daily prices are compounded into monthly returns and indexed to 100 at
+  Mar-2018 for the benchmark line on the landing-page chart. API key is
+  hardcoded in `SP500_EUR_HDG_load()`; free tier (250 req/day) is enough.
 
 **Outputs** (in `../Data/ETI_EUR_hedged/<period_end>/`):
 
@@ -167,6 +177,25 @@ landing page on OneDrive.
 ```bash
 /Users/alexander/opt/anaconda3/envs/ARQuant37_pip/bin/python AMC_EUR_hedged_simulation_2026_05.py
 ```
+
+### 5.0 Hedge methodology
+
+The EUR-hedged return is computed via covered interest parity using **end-of-month** EUR/USD spot and **start-of-month** rates (i.e. the forward locked in at end of the previous month):
+
+```
+R_EUR_hedged[t] = (1 + R_USD[t]) * spot[t-1] / forward[t-1 → t] - 1
+                ≈ R_USD[t] - (r_USD[t-1] - r_EUR[t-1]) / 12
+```
+
+The EUR investor gives up the (typically positive) USD-EUR rate differential, so EUR-hedged returns are normally **lower** than USD returns by that monthly carry. The script prints a sanity check on each run:
+
+```
+Hedge sanity check: realised monthly carry drag = +X.XXX%, rate-implied = +X.XXX%
+```
+
+Both numbers should have the same sign. If you see `WARNING: hedge return moves opposite to rate differential`, the formula direction has regressed — restore from tag `v2026.05-pre-hedge-fix`'s parent or re-apply the correct `spot.shift(1)/forward.shift(1)` form.
+
+FX is resampled to end-of-month (`resample('M').last()`), not monthly average — month-end spot is the relevant valuation point and aligns with how the rolling 1-month hedge is actually entered.
 
 ### 5.1 Automatic update of the ETI landing page
 
@@ -184,6 +213,8 @@ original before each write.
 **What is refreshed automatically:**
 
 - Monthly returns heatmap (`PERF` JS object)
+- iShares S&P 500 EUR Hedged monthly returns (`SP500_HDG` JS object) —
+  drives the benchmark line on the indexed-performance chart
 - The five risk/return metric cards (`METRICS` JS array) for
   Inception / Since-Jan-2021 / L60M / L36M / L12M
 - The four hero stats: annualised return, Sharpe, max drawdown,
@@ -217,6 +248,8 @@ and writes all CSV / PNG outputs.
 | `ETI landing page update skipped` | OneDrive path missing or HTML structure changed | Verify the path exists; the simulation step still completes |
 | `weasyprint` errors during PDF render | Missing native libs in the conda env | Reinstall `weasyprint` in `ARQuant37_pip` |
 | Broken paths from concatenation | Code uses `maindir + datadir` instead of `os.path.join` | Use `os.path.join()` everywhere; `datadir` starts with `..` and must not be string-glued |
+| `Euribor 1M [YYYY-MM]: X.XXX% (ECB not yet published; carried forward)` | Reporting month not yet published by ECB | Informational only — script auto-fills from the previous month. Optionally pin a more accurate value via `_EURIBOR_OVERRIDES` |
+| `WARNING: hedge return moves opposite to rate differential` | Hedge formula direction inverted (regression) | Restore correct form: `(1+R_USD) * spot.shift(1) / forward.shift(1) - 1`. See §5.0 |
 
 ---
 

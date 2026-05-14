@@ -34,6 +34,15 @@ datadir = os.path.join('Data', 'ETI_EUR_hedged')  # kept for legacy maindir+data
 period_start = '2018-03'
 period_end = '2026-04'
 
+# Optional explicit overrides for Euribor 1M monthly average (value in percent,
+# e.g. 1.897 = 1.897%). Use when you have an authoritative value better than
+# simple carry-forward (e.g. from EMMI daily fixing or an internal estimate).
+# Missing months are otherwise filled automatically from the previous month —
+# see the resolver below.
+_EURIBOR_OVERRIDES = {
+    # '2026-05': 1.897,
+}
+
 subdir = os.path.join(eti_dir, period_end)
 makedirs(subdir, exist_ok=True)
 
@@ -69,29 +78,30 @@ arq_m.rename(columns={'Adjusted':'Return_USD'}, inplace=True)
 arq_m.index=arq_m.index.to_period('M')
 
 #%%
-def FX_load(rate='DEXUSEU',start='2018-02-28', isDaily=True): # 3-month T-Bill as of month start
+def FX_load(rate='DEXUSEU',start='2018-02-28', isDaily=True):
     import pandas_datareader as pdr
     eur_usd=pdr.DataReader(rate, 'fred', start)
-    if isinstance(eur_usd, pd.DataFrame): 
+    if isinstance(eur_usd, pd.DataFrame):
         eur_usd=eur_usd.squeeze()
         eur_usd.name = 'USD per EUR (spot)'
     if isDaily:
         return eur_usd
-    else: 
-        # Resample to monthly average
-        fx_monthly = eur_usd.resample('M').mean()
+    else:
+        # Month-end spot: the relevant point for valuing positions and for
+        # entering rolling 1-month FX hedges at the start of the next month.
+        fx_monthly = eur_usd.resample('M').last()
         fx_monthly.index=fx_monthly.index.to_period('M')
         return fx_monthly
 
-eur_usd_mo_mean = FX_load(rate='DEXUSEU',start='2018-02-01',isDaily=False)
+eur_usd_mo_eom = FX_load(rate='DEXUSEU',start='2018-02-01',isDaily=False)
 
 
-#Unhedged performance
-fx_coef = (eur_usd_mo_mean.shift(1)/eur_usd_mo_mean).dropna(axis=0)
+#Unhedged performance: EUR_NAV[t]/EUR_NAV[t-1] = (1+R_USD)*S[t-1]/S[t]
+fx_coef = (eur_usd_mo_eom.shift(1)/eur_usd_mo_eom).dropna(axis=0)
 ret_eur_unhedged=(1+arq_m.squeeze())*fx_coef-1
 
-dfr_all = pd.concat([arq_m,eur_usd_mo_mean], axis=1, join='outer')
-eur_usd_mo_mean = eur_usd_mo_mean.iloc[1:] #Remove Feb-2018
+dfr_all = pd.concat([arq_m,eur_usd_mo_eom], axis=1, join='outer')
+eur_usd_mo_eom = eur_usd_mo_eom.iloc[1:] #Remove Feb-2018
 
 dfr_all.loc[arq_m.index,'Return_EUR (unhedged)'] = ret_eur_unhedged
 
@@ -192,7 +202,23 @@ def EUR_1m_load(start='2018-02-28'): # 1-month Euribor monthly average
 eur_1mo=EUR_1m_load(start='2018-03-01')
 
 dfr_all['1MO_EUR_interest_rate']=eur_1mo
-dfr_all['1MO_EUR_interest_rate'].iloc[-1] = 1.897 #Manually add current month average
+
+# Resolve trailing months that ECB hasn't published yet. Priority:
+#   1) explicit value from _EURIBOR_OVERRIDES (authoritative)
+#   2) carry-forward of the previous month's value (automatic fallback)
+# Cascades correctly across multiple missing trailing months.
+_last_valid = dfr_all['1MO_EUR_interest_rate'].last_valid_index()
+if _last_valid is None:
+    raise ValueError("Euribor 1M series is empty — check ECB API connection.")
+for _p in dfr_all.loc[dfr_all.index > _last_valid].index:
+    _p_str = str(_p)
+    if _p_str in _EURIBOR_OVERRIDES:
+        _val, _src = _EURIBOR_OVERRIDES[_p_str], 'manual override'
+    else:
+        _val = dfr_all['1MO_EUR_interest_rate'].dropna().iloc[-1]
+        _src = 'ECB not yet published; carried forward'
+    dfr_all.loc[_p, '1MO_EUR_interest_rate'] = _val
+    print(f"Euribor 1M [{_p_str}]: {_val:.3f}% ({_src})")
 eur_1mo = dfr_all['1MO_EUR_interest_rate'].iloc[1:]
 
 #USD 1-month rates history
@@ -200,22 +226,94 @@ usd_1mo=USD_1m_load(start='2018-03-01',isDaily=False)
 
 dfr_all['1MO_USD_interest_rate']=usd_1mo
 
+#%%
+# iShares S&P 500 EUR Hedged UCITS ETF — monthly returns since Mar-2018.
+# Source: Financial Modeling Prep, daily adj-close, compounded into months.
+# Default ticker IBCF.DE matches the benchmark named on the landing page
+# (iShares S&P 500 EUR Hedged UCITS ETF Acc, ISIN IE00B3ZW0K18, Xetra).
+_FMP_API_KEY = 'db413ca4aade59bea7ca7e22c3f88f10'
 
-# usd_eur_rate => EUR in USD
-# eur_usd_rate => USD in EUR
-#spot rate x (1 + domestic interest rate) / (1 + foreign interest rate)
-#Simulated 1-month forward rates: forward_usd_eur_rate (i.e. EUR_per_USD) = usd_eur_rate * (1 + 0.0175/12)/(1+ 0.01/12)), assuming USD interest rate = 1.75%, EUR = 1%.
+def SP500_EUR_HDG_load(ticker='IBCF.DE', start='2018-02-01', end=None,
+                       api_key=_FMP_API_KEY):
+    """Monthly returns of the iShares S&P 500 EUR Hedged UCITS ETF.
 
-eur_usd_spot = eur_usd_mo_mean.squeeze()
+    Fetches daily adjusted-close prices from Financial Modeling Prep and
+    compounds daily returns into monthly returns. Returns a pd.Series of
+    monthly returns (decimal) indexed by PeriodIndex 'M'.
+    """
+    import requests
+    url = (f'https://financialmodelingprep.com/api/v3/'
+           f'historical-price-full/{ticker}')
+    params = {'from': start, 'apikey': api_key}
+    if end is not None:
+        params['to'] = end
+    print(f"Downloading {ticker} daily prices from Financial Modeling Prep...")
+    r = requests.get(url, params=params, timeout=(15, 90))
+    r.raise_for_status()
+    payload = r.json()
+    if not isinstance(payload, dict) or not payload.get('historical'):
+        raise RuntimeError(
+            f"FMP returned no historical data for {ticker}: {str(payload)[:200]}"
+        )
+    df = pd.DataFrame(payload['historical'])
+    df['date'] = pd.to_datetime(df['date'])
+    df = df.sort_values('date').set_index('date')
+    close = df['adjClose']
+    daily_ret = close.pct_change().dropna()
+    monthly_ret = daily_ret.resample('M').apply(lambda x: (1 + x).prod() - 1)
+    monthly_ret.index = monthly_ret.index.to_period('M')
+    monthly_ret.name = f'{ticker}_return'
+    return monthly_ret
+
+# Trim to the simulation window so the benchmark line aligns with PERF
+# (Mar-2018 through period_end, partial months dropped at both ends).
+sp500_hdg_ret = SP500_EUR_HDG_load(ticker='IBCF.DE', start='2018-02-01')
+sp500_hdg_ret = sp500_hdg_ret.loc[period_start:period_end]
+dfr_all['sp500_eur_hdg_return'] = sp500_hdg_ret
+
+# Indexed performance from Mar-2018 = 100; missing months treated as 0 return.
+sp500_hdg_indexed = 100 * (1 + dfr_all['sp500_eur_hdg_return']
+                           .loc['2018-03':].fillna(0)).cumprod()
+dfr_all['sp500_eur_hdg_indexed'] = sp500_hdg_indexed
+
+
+# Covered interest parity (USD per EUR convention, with USD as "domestic"):
+#   F = S * (1 + r_USD) / (1 + r_EUR)
+# When r_USD > r_EUR, the forward sells EUR at a premium (more USD per EUR
+# in the future), i.e. the higher-rate currency trades at a forward discount.
+
+eur_usd_spot = eur_usd_mo_eom.squeeze()
 eur_usd_forward_calc = eur_usd_spot * (1+usd_1mo.values/100/12)/(1+eur_1mo.values/100/12)
-eur_usd_forward_apply = eur_usd_forward_calc.shift(1).dropna().squeeze()
 
 dfr_all['USD per EUR (1mo forward)']=eur_usd_forward_calc
 dfr_all.to_csv(os.path.join(subdir, '_ARQuant_monthly_EUR_simulation.csv')) #https://fred.stlouisfed.org/series/DEXUSEU
 
-#Hedging USD exposure using a 1-month FX forward (rolling monthly hedge), 
-# funded by USD and EUR deposits — a common currency-hedged return calculation.
-dfr_all['eur_returns_hedged']= (1+dfr_all['Return_USD']) * dfr_all['USD per EUR (1mo forward)']/dfr_all['USD per EUR (spot)'] - 1
+# Hedging USD exposure with a rolling 1-month FX forward.
+# The forward applied to month t is locked in at end of month t-1, using rates
+# observable at t-1. Same for spot used to convert the principal at start of t.
+#   R_EUR_hedged(t) = (1 + R_USD(t)) * S(t-1) / F(t-1 -> t) - 1
+#                  ≈ R_USD(t) - (r_USD(t-1) - r_EUR(t-1)) / 12
+# The EUR investor gives up the (usually positive) USD-EUR rate differential,
+# so EUR-hedged returns are typically lower than USD returns by that carry.
+dfr_all['eur_returns_hedged']= (
+    (1 + dfr_all['Return_USD'])
+    * dfr_all['USD per EUR (spot)'].shift(1)
+    / dfr_all['USD per EUR (1mo forward)'].shift(1)
+    - 1
+)
+
+# Sanity check: the realised carry drag (R_USD - R_EUR_hedged) should be
+# positive on average when USD rates exceed EUR rates, and roughly equal to
+# the average rate differential. A sign mismatch means the formula direction
+# is wrong (e.g. forward/spot vs spot/forward inverted).
+_carry_actual_m = (dfr_all['Return_USD'] - dfr_all['eur_returns_hedged']).dropna().mean()
+_carry_implied_m = ((dfr_all['1MO_USD_interest_rate'] - dfr_all['1MO_EUR_interest_rate'])
+                    .dropna().mean()) / 100 / 12
+print(f"Hedge sanity check: realised monthly carry drag = {_carry_actual_m*100:+.3f}%, "
+      f"rate-implied = {_carry_implied_m*100:+.3f}% "
+      f"(both should match in sign when USD rates exceed EUR rates).")
+if _carry_actual_m * _carry_implied_m < 0:
+    print("  WARNING: hedge return moves opposite to rate differential — check formula sign.")
 
 #%%
 #Return in EUR after AMC fees (excl. entry fee and block issue fee)
@@ -250,9 +348,13 @@ dfr_all['usd_returns_net']=arq_monthly_net
 dfr_all.to_csv(os.path.join(subdir, '_ARQuant_monthly_EUR_simulation.csv'))
 
 
-#Formatting EUR returns after fees
-eur_ret_fs_net=factsheet(eur_ret_net, 
-                         years=['2018', '2019', '2020', '2021', '2022', '2023', '2024','2025'],
+#Formatting EUR returns after fees.
+#Year list runs from inception year through period_end's year so the current
+#reporting year (and any future year that ends up in the data) is always shown.
+_fs_years = [str(y) for y in range(int(period_start.split('-')[0]),
+                                   int(period_end.split('-')[0]) + 1)]
+eur_ret_fs_net=factsheet(eur_ret_net,
+                         years=_fs_years,
                          output='after fees', af_func=None, #None if net returns, otherwise after_fees or after_fees2m or after_fees2q
                          decim=4
                          )
@@ -286,6 +388,13 @@ df1=df1.to_frame()
 
 # Index the cumulative hedged EUR returns to 100 (starting at first valid value)
 df1['indexed_performance'] = 100 * (1 + df1['eur_returns_hedged_net'].fillna(0)).cumprod()
+
+# Benchmark: iShares S&P 500 EUR Hedged — indexed from the same Dec-2020 base
+# so both lines share a common starting value of 100.
+df_bench = dfr_all['sp500_eur_hdg_return'].loc['2020-12':].copy()
+df_bench.iloc[0] = 0.
+df_bench = df_bench.to_frame()
+df_bench['indexed_bench'] = 100 * (1 + df_bench['sp500_eur_hdg_return'].fillna(0)).cumprod()
 
 
 # Extract annual performance by compounding monthly returns
@@ -352,7 +461,8 @@ def rgb_to_matplotlib(r, g, b):
 fig, ax1 = plt.subplots(figsize=(12, 6))
 
 # Ensure left Y-axis starts at 100
-left_min, left_max = df1['indexed_performance'].min(), df1['indexed_performance'].max()
+left_min = min(df1['indexed_performance'].min(), df_bench['indexed_bench'].min())
+left_max = max(df1['indexed_performance'].max(), df_bench['indexed_bench'].max())
 
 # top_limit = max(left_max, annual_returns.max())+15
 
@@ -362,12 +472,19 @@ ax1.set_ylim(left_min*0.95, left_max*1.05)  # start at left_min
 ax1.plot(df1.index.to_timestamp(), df1['indexed_performance'],
          color=rgb_to_matplotlib (11,52,105), #Alternative is rgb_to_matplotlib (13,46,93)
          linewidth=2, label='Indexed performance')
+
+# Plot iShares S&P 500 EUR Hedged benchmark (orange dashed, matches HTML chart)
+ax1.plot(df_bench.index.to_timestamp(), df_bench['indexed_bench'],
+         color=rgb_to_matplotlib(234, 102, 57),
+         linewidth=1.8, linestyle='--',
+         label='iShares S&P 500 EUR Hedged')
+
 ax1.set_ylabel('Indexed performance', color='black')
 ax1.tick_params(axis='y', labelcolor='black')
 
 # Left Y-axis ticks: only min, max, and 100
-ax1.set_yticks([100, 
-                # round(left_min, 0), 
+ax1.set_yticks([100,
+                # round(left_min, 0),
                 round(left_max, 0)])
 ax1.grid(True, linestyle='--', alpha=0.7)
 
@@ -392,7 +509,7 @@ ax1.set_xticklabels([str(year) for year in years])
 # Legend
 lines1, labels1 = ax1.get_legend_handles_labels()
 lines2, labels2 = ax2.get_legend_handles_labels()
-fig.legend(lines1 + lines2, labels1 + labels2, loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=2)
+fig.legend(lines1 + lines2, labels1 + labels2, loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
 
 # Title and source
 fig.suptitle('Performance (EUR-simulated)', fontsize=14)
@@ -542,7 +659,7 @@ def _eti_format_metrics_js(metrics_df):
 
 def update_eti_landing_page(html_path, monthly_returns_eur, metrics_df,
                             period_end_str, previous_period_end=None,
-                            backup=True):
+                            sp500_hdg_returns=None, backup=True):
     """Refresh the ARQuant ETI multilang landing page with the latest EUR-hedged
     simulation data.
 
@@ -596,6 +713,18 @@ def update_eti_landing_page(html_path, monthly_returns_eur, metrics_df,
     if not perf_re.search(html):
         raise ValueError("Couldn't locate `const PERF = {...};` in HTML.")
     html = perf_re.sub(f'const PERF = {{{perf_body}}};', html, count=1)
+
+    # ── 1b. Replace SP500_HDG block (iShares S&P 500 EUR Hedged) ─────
+    if sp500_hdg_returns is not None and len(sp500_hdg_returns.dropna()):
+        sp500_body = _eti_format_perf_js(sp500_hdg_returns.dropna())
+        sp500_re = re.compile(r'const SP500_HDG = \{[^}]*\};', re.DOTALL)
+        if sp500_re.search(html):
+            html = sp500_re.sub(f'const SP500_HDG = {{{sp500_body}}};', html, count=1)
+        else:
+            # Insert right after the PERF block if the literal isn't present yet.
+            html = perf_re.sub(
+                lambda m: m.group(0) + f'\nconst SP500_HDG = {{{sp500_body}}};',
+                html, count=1)
 
     # ── 2. Replace METRICS block ─────────────────────────────────────
     metrics_body = _eti_format_metrics_js(metrics_df)
@@ -665,6 +794,7 @@ try:
         monthly_returns_eur=dfr_all['eur_returns_hedged_net'].dropna(),
         metrics_df=metrics_df,
         period_end_str=period_end,
+        sp500_hdg_returns=dfr_all['sp500_eur_hdg_return'].dropna(),
     )
 except Exception as _e:
     print(f'ETI landing page update skipped: {type(_e).__name__}: {_e}')
