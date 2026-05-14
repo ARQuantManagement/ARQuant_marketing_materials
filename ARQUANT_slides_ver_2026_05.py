@@ -128,9 +128,9 @@ params={
         'investor_periods_plot' : ['Inception'] ,
         'isForWeb' : True ,
         'isForPP' : True,
-        'PP_pages_stat' : {'P1':['Inception', 
-                                 '2024', 
-                                  '2025','2026',
+        'PP_pages_stat' : {'P1':['Inception',
+                                 '2024',
+                                  '2025','YTD',
                                  ],
                            'P2':['2021', '2022', '2023'],
                            'P3':['2018', '2019', '2020']

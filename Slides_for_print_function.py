@@ -470,21 +470,21 @@ def factsheet_html(df, outputname, resolution = 200,
                              font-family: "Avenir Next";
                              font-size:'''+font_size+''';
                              }
-        .dataframe th       { font-weight: bold; text-align: left; 
-                             padding: 5px 25px 5px 10px; 
-                             border: 0px; 
+        .dataframe th       { font-weight: bold; text-align: center;
+                             padding: 5px 6px;
+                             border: 0px;
                              white-space: nowrap;
                              word-break: keep-all; }
         .dataframe tr:last-child{ border-bottom: 5px solid '''+bcolor+'''}
-        .dataframe thead th { background: '''+bcolor+''' 
-                             padding: 5px 25px 5px 10px;}
-        .dataframe td       { text-align: left; 
-                             padding: 5px 25px 5px 10px; 
-                             border: 0; 
+        .dataframe thead th { background: '''+bcolor+'''
+                             padding: 5px 6px;}
+        .dataframe td       { text-align: center;
+                             padding: 5px 6px;
+                             border: 0;
                              white-space: nowrap;
                              overflow-wrap: normal;
                              word-break: keep-all; }
-        .dataframe th,td,caption { padding: 5px 25px 5px 10px; }
+        .dataframe th,td,caption { padding: 5px 6px; }
         .dataframe tbody tr:nth-child(even) td, 
         .dataframe tbody tr.even td { background: #d2d2d2; }
         .dataframe tbody tr:nth-child(even) th, 

@@ -13,7 +13,7 @@ Run with explicit interpreter to avoid env mismatches:
 
 ## Path conventions
 
-All scripts use `script_dir = os.path.dirname(os.path.abspath(__file__))` as `maindir`, making the project **location-independent**. Data is expected one level above the project root:
+All scripts use `script_dir = os.path.dirname(os.path.abspath(__file__))` as `maindir`, making the project **location-independent**. **Exception:** `AMC_EUR_hedged_simulation_2026_05.py` sets `maindir = os.path.dirname(script_dir)` (the parent of the project dir) to preserve legacy `maindir + datadir + ...` path patterns. Data is expected one level above the project root:
 
 - Project: `.../Python/ARQuant marketing materials/`
 - Data: `.../Python/Data/ARQuant_history/`, `.../Python/Data/Indexes/`
@@ -31,6 +31,9 @@ The two main entry-point scripts are:
 - `ARQUANT_factsheet_2026_05.py` — generates monthly investor factsheet (PDF/HTML)
 
 Both will `sys.exit()` if the required monthly IBKR CSV input files are missing in `histdir` — check the printed message for which files to download.
+
+Standalone simulation script (separate from the monthly pipeline):
+- `AMC_EUR_hedged_simulation_2026_05.py` — EUR-hedged AMC backtest. Reads `arquant_spy_raw_inputs.xlsx` (sheet `Q2Update`) from `../Data/ETI_EUR_hedged/`, pulls EUR/USD spot (`DEXUSEU`) and 1-month rates (USD T-Bill, EUR Euribor) from FRED, writes outputs to `../Data/ETI_EUR_hedged/<period_end>/`. Reporting window is driven by `period_start` / `period_end` near the top, not `new_end`.
 
 ## Version suffix convention
 
@@ -84,3 +87,5 @@ FRED (`fred.stlouisfed.org`) is prone to read timeouts. Wrap any direct FRED cal
 - `new_end` in the main scripts drives the reporting period — update this for each new report.
 - Pickle files in `Presentation_Inputs/` are intermediate caches — regenerate by re-running the analytics section if inputs change.
 - Brand color for ARQuant: `#ea6639`; font: Avenir.
+- `.gitignore` covers `__pycache__/`, `.DS_Store`, `.ipynb_checkpoints/`, `.vscode/`, `.idea/`, `*.py[cod]`, `*.so`, `.Python`, `*.egg-info/`, `*.swp` — don't re-track these.
+- Stats table current-year column: in `PP_pages_stat` (and similar period selectors) use the literal `'YTD'` for the current year, not the year string (e.g. `'2026'`). `Stats.pkl` contains both rows with identical data, but `stats_periods_for_print2` only blanks out the YTD-incompatible rows (Return ann., Volatility ann., Risk Free Rate, Sharpe/Calmar/Sortino, Kelly, Skewness, Kurtosis, VaR/CVaR) when the index label is exactly `'YTD'`. The rendered column header comes from the period label, so `'YTD'` also gives the right caption.
