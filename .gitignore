@@ -16,3 +16,12 @@ __pycache__/
 .vscode/
 .idea/
 *.swp
+
+# Private: scripts, docs, Claude settings — live in the private repo
+*.py
+*.md
+*.html.bak.*
+.claude/
+
+# Private: legacy landing page variant
+ARQuant_ETI_Landing_Page_multilang_with_fees.html
