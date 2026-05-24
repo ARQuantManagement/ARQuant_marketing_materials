@@ -674,7 +674,7 @@ def update_eti_landing_page(html_path, monthly_returns_eur, metrics_df,
     Parameters
     ----------
     html_path : str
-        Absolute path to ARQuant_ETI_Landing_Page_multilang.html.
+        Absolute path to ARQuant_ETI_Landing_Page_multilang_with_fees.html.
     monthly_returns_eur : pd.Series
         EUR net returns indexed by PeriodIndex 'M' (decimal, e.g. 0.0312).
     metrics_df : pd.DataFrame
@@ -783,10 +783,8 @@ def update_eti_landing_page(html_path, monthly_returns_eur, metrics_df,
 
 #%%
 # Push the freshly computed simulation into the landing page
-_eti_html_path = os.path.expanduser(
-    '~/Library/CloudStorage/OneDrive-ARQUANTMANAGEMENTLIMITED/'
-    'ARQuant Main Site - Documents/4- Marketing/AMC/_Marketing materials/'
-    'ARQuant_ETI_Landing_Page_multilang.html'
+_eti_html_path = os.path.join(
+    script_dir, 'ARQuant_ETI_Landing_Page_multilang_with_fees.html'
 )
 try:
     update_eti_landing_page(

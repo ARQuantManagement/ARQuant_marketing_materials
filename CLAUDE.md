@@ -24,6 +24,20 @@ All scripts use `script_dir = os.path.dirname(os.path.abspath(__file__))` as `ma
 datadir = os.path.join('..', 'Data', 'Factsheet_' + _period)
 ```
 
+## Monthly workflow checklist
+
+Each period, make exactly these edits before running:
+
+| Script | Variable to change | Format |
+|---|---|---|
+| `ARQUANT_slides_ver_2026_05.py` | `new_end` (~line 44) | `'YYYY-MM-DD'` (last calendar day) |
+| `ARQUANT_factsheet_2026_05.py` | `new_end` (~line 44) | `'YYYY-MM-DD'` |
+| `AMC_EUR_hedged_simulation_2026_05.py` | `period_end` (~line 35) | `'YYYY-MM'` |
+
+Also download the two IBKR FlexReport CSVs for the new month into `../Data/ARQuant_history/` before running the slides/factsheet scripts — they `sys.exit()` immediately if the files are missing, printing the exact filenames needed.
+
+See `USAGE.md` for full step-by-step operational instructions and a common-issues table.
+
 ## Running scripts
 
 The two main entry-point scripts are:
@@ -34,6 +48,10 @@ Both will `sys.exit()` if the required monthly IBKR CSV input files are missing 
 
 Standalone simulation script (separate from the monthly pipeline):
 - `AMC_EUR_hedged_simulation_2026_05.py` — EUR-hedged AMC backtest. Reads `arquant_spy_raw_inputs.xlsx` (sheet `Q2Update`) from `../Data/ETI_EUR_hedged/`, pulls EUR/USD spot (`DEXUSEU`, resampled to **end-of-month**) and 1-month rates (USD T-Bill via FRED `DGS1MO`, EUR Euribor via ECB Data Portal) from external APIs, writes outputs to `../Data/ETI_EUR_hedged/<period_end>/`. Reporting window is driven by `period_start` / `period_end` near the top, not `new_end`.
+
+Additional AMC inputs:
+- **USD net monthly returns** — `../Data/EUR_hedge/AVESA_Group_Ltd_U3577443_history_mothly_net_2025_04.csv` (line ~337). When a newer FTP-delivered file is available, update the filename in the `pd.read_csv()` call.
+- **iShares EUR-hedged ETF benchmark** (`IBCF.DE`) — fetched via Financial Modeling Prep in `SP500_EUR_HDG_load()`. The free-tier API key is hardcoded as `_FMP_API_KEY` (~line 234); free tier allows 250 req/day which is sufficient for monthly runs.
 
 ### EUR-hedged return formula (critical)
 
@@ -50,6 +68,10 @@ Equivalently from rates: `(1+R_USD) * (1+r_EUR.shift(1)/12) / (1+r_USD.shift(1)/
 
 ECB publishes Euribor 1M monthly averages only after the month closes, so the reporting month is typically missing on first fetch. `AMC_EUR_hedged_simulation_2026_05.py` resolves this automatically: any trailing-NaN month is **carry-forwarded from the previous month's value** (cascades across multiple missing months). The dict `_EURIBOR_OVERRIDES = {'YYYY-MM': value_in_percent}` near the top is an **optional** explicit override — use it when you have an authoritative value better than carry-forward (e.g. from EMMI daily fixing). Each resolution is printed to console: `Euribor 1M [YYYY-MM]: X.XXX% (manual override | ECB not yet published; carried forward)`.
 
+### ETI landing-page update
+
+As its final step, `AMC_EUR_hedged_simulation_2026_05.py` calls `update_eti_landing_page()` to refresh the multilingual landing page. The **current target is `ARQuant_ETI_Landing_Page_multilang_with_fees.html` in the project root** (`script_dir`) — the legacy `ARQuant_ETI_Landing_Page_multilang.html` is kept on disk but is no longer written to. The function replaces `const PERF`, `const SP500_HDG`, `const METRICS` JS literals, the four `hero-stat-val` numbers, and rewrites the period-end date string in EN/FR/DE/IT. ETI inception ("May 2026") and the Base Prospectus date ("3 April 2025") are shielded from generic date replacement via the `_ETI_PROTECT_PATTERNS` placeholder mechanism. A `<!-- ARQUANT_DATA_END: YYYY-MM -->` marker inside `<head>` records the last-written period so subsequent runs know which old dates to overwrite; a timestamped `.bak.<ts>` copy is saved alongside the file on each run.
+
 ## Version suffix convention
 
 Most scripts share a unified `2026_05` suffix that should be updated together when bumping versions. **Exception:** `Benchmark_new_2025.py` keeps its `2025` suffix and is imported as `from Benchmark_new_2025 import ...`.
@@ -60,10 +82,11 @@ This project generates periodic investor performance reports for ARQuant/AVESA h
 
 **Data flow:**
 
-1. **Input data** — CSVs in `../Data/ARQuant_history/` and `../Data/Indexes/`
-   - IBKR FTP-delivered monthly return files (e.g. `ARQuant_Management_Limited_<month>_<year>_daily.csv`)
-   - Long-term history: `AVESA_Group_Ltd_U3577443_history.csv`
-   - Benchmark indexes: Eurekahedge, Fama-French factors, SPY, VIX cached
+1. **Input data**
+   - `../Data/ARQuant_history/` — IBKR FTP-delivered monthly FlexReport CSVs (e.g. `ARQuant_Management_Limited_<Month_YYYY>_<Month_YYYY>_daily.csv`) and long-term history `AVESA_Group_Ltd_U3577443_history.csv`
+   - `../Data/Indexes/` — Eurekahedge, Fama-French factors, SPY, VIX cached
+   - `../Data/ETI_EUR_hedged/` — AMC simulation inputs (`arquant_spy_raw_inputs.xlsx`) and outputs
+   - `../Data/EUR_hedge/` — USD net monthly returns CSV for AMC simulation; filename must be updated when a new FTP file arrives
 
 2. **Orchestration scripts:**
    - `ARQUANT_slides_ver_2026_05.py` — slides pipeline; calls analytics then dispatches to website/PowerPoint generators
