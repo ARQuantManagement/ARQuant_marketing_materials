@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<!-- ARQUANT_DATA_END: 2026-04 -->
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ARQuant Long Short Momentum ETI | DE000AMC0B38</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:        #F7F4EF;
+    --bg2:       #EDEAE5;
+    --bg3:       #E5E1DB;
+    --border:    #D4CFC8;
+    --orange:    #E8693A;
+    --orange-lt: #F08155;
+    --text:      #111111;
+    --muted:     #6B6560;
+    --pos:       #1A6B3E;
+    --neg:       #B82B2B;
+    --radius:    6px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.6; }
+
+  /* ── NAV ─────────────────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(247,244,239,0.96); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; height: 60px; gap: 16px;
+  }
+  .nav-logo { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; }
+  .nav-logo-text {
+    font-weight: 700; font-size: 15px; color: var(--text);
+    line-height: 1.25; white-space: nowrap;
+  }
+  .nav-logo-text .orange-line { color: var(--orange); display: block; }
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .lang-switcher { display: flex; gap: 3px; }
+  .lang-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 4px;
+    cursor: pointer; transition: all .2s; font-family: inherit; letter-spacing: .3px;
+  }
+  .lang-btn:hover { border-color: var(--orange); color: var(--orange); }
+  .lang-btn.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .nav-cta {
+    background: var(--orange); color: #fff; border: none; padding: 8px 20px;
+    border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+    text-decoration: none; transition: background .2s; white-space: nowrap;
+  }
+  .nav-cta:hover { background: var(--orange-lt); }
+
+  /* ── HERO ────────────────────────────────────────────────────── */
+  .hero {
+    padding: 90px 40px 70px;
+    background: transparent;
+    border-bottom: 1px solid var(--border);
+    max-width: 1200px; margin: 0 auto;
+  }
+  .hero-label {
+    display: inline-block; background: rgba(232,105,58,.15); border: 1px solid rgba(232,105,58,.35);
+    color: var(--orange); font-size: 11px; font-weight: 600; letter-spacing: 1.2px;
+    text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 22px;
+  }
+  .hero h1 { font-size: clamp(28px, 4vw, 48px); font-weight: 700; line-height: 1.15; max-width: 680px; }
+  .hero h1 span { color: var(--orange); }
+  .hero-sub { color: var(--muted); margin-top: 16px; max-width: 580px; font-size: 16px; }
+  .hero-stats { display: flex; gap: 48px; margin-top: 44px; flex-wrap: wrap; }
+  .hero-stat-val { font-size: 36px; font-weight: 700; color: var(--pos); }
+  .hero-stat-val.orange { color: var(--orange); }
+  .hero-stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .8px; }
+  .hero-stat-sub { font-size: 11px; color: var(--muted); opacity: .6; }
+  .hero-ctas { display: flex; gap: 14px; margin-top: 38px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--orange); color: #fff; padding: 12px 28px; border-radius: 7px;
+    font-weight: 600; font-size: 14px; text-decoration: none; transition: background .2s;
+  }
+  .btn-primary:hover { background: var(--orange-lt); }
+  .btn-secondary {
+    background: transparent; color: var(--text); border: 1px solid var(--border);
+    padding: 12px 28px; border-radius: 7px; font-weight: 500; font-size: 14px;
+    text-decoration: none; transition: border-color .2s, color .2s;
+  }
+  .btn-secondary:hover { border-color: var(--orange); color: var(--orange); }
+
+  /* ── FACTSHEET STRIP ─────────────────────────────────────────── */
+  .factsheet {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 0;
+  }
+  .fact-item {
+    padding: 20px 36px; border-right: 1px solid var(--border); text-align: center; flex: 1; min-width: 140px;
+  }
+  .fact-item:last-child { border-right: none; }
+  .fact-val { font-size: 15px; font-weight: 600; color: var(--text); }
+  .fact-key { font-size: 11px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: .7px; }
+
+  /* ── SECTIONS ────────────────────────────────────────────────── */
+  .section { padding: 72px 40px; max-width: 1200px; margin: 0 auto; }
+  .section-full { padding: 72px 40px; background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .section-full .inner { max-width: 1200px; margin: 0 auto; }
+  .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px; color: var(--orange); margin-bottom: 10px; }
+  .section-heading { font-size: clamp(22px, 2.5vw, 32px); font-weight: 700; margin-bottom: 8px; }
+  .section-sub { color: var(--muted); max-width: 560px; margin-bottom: 36px; font-size: 14px; }
+
+  /* ── PERFORMANCE CHART ───────────────────────────────────────── */
+  .chart-wrap { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 32px; }
+  .chart-wrap canvas { max-height: 280px; }
+
+  /* ── MONTHLY HEATMAP ─────────────────────────────────────────── */
+  .heatmap-wrap { overflow-x: auto; }
+  table.heatmap {
+    width: 100%; border-collapse: collapse; font-size: 12.5px;
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+  }
+  table.heatmap th {
+    background: var(--bg2); color: var(--muted); font-weight: 600;
+    padding: 10px 8px; text-align: center; font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.heatmap td {
+    padding: 9px 6px; text-align: center; border-bottom: 1px solid rgba(30,58,86,.4);
+    font-variant-numeric: tabular-nums; font-size: 12px;
+  }
+  table.heatmap tr:last-child td { border-bottom: none; }
+  table.heatmap td.year { font-weight: 700; color: var(--text); background: var(--bg2); border-right: 1px solid var(--border); padding-left: 16px; }
+  table.heatmap td.ytd { font-weight: 700; border-left: 1px solid var(--border); }
+  td.pos { color: var(--pos); }
+  td.neg { color: var(--neg); }
+  td.na  { color: var(--border); }
+
+  /* ── METRICS TABLE ───────────────────────────────────────────── */
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+  .metric-card {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 22px;
+  }
+  .metric-card-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 8px; }
+  .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(30,58,86,.4); font-size: 13px; }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-row span:first-child { color: var(--muted); }
+  .metric-row span:last-child { font-weight: 600; }
+
+  /* ── STRATEGY ────────────────────────────────────────────────── */
+  .strategy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 768px) { .strategy-grid { grid-template-columns: 1fr; } }
+  .strategy-card {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px;
+  }
+  .strategy-card-icon {
+    width: 44px; height: 44px; border-radius: 8px; background: rgba(232,105,58,.12);
+    border: 1px solid rgba(232,105,58,.25); display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px; font-size: 20px;
+  }
+  .strategy-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+  .strategy-card p { color: var(--muted); font-size: 13.5px; margin-bottom: 14px; }
+  .strategy-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .strategy-list li { display: flex; gap: 10px; font-size: 13px; color: var(--muted); }
+  .strategy-list li::before { content: "–"; color: var(--orange); flex-shrink: 0; }
+
+  /* ── HOW TO INVEST ───────────────────────────────────────────── */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  @media (max-width: 700px) { .steps { grid-template-columns: 1fr; } }
+  .step-card {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 26px; position: relative;
+  }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 50%; background: rgba(232,105,58,.15);
+    border: 1px solid var(--orange); color: var(--orange); font-weight: 700; font-size: 15px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+  }
+  .step-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .step-card p { color: var(--muted); font-size: 13px; }
+
+  /* ── DOCUMENTS ───────────────────────────────────────────────── */
+  .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .doc-card {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; display: flex; align-items: center; gap: 14px;
+    text-decoration: none; color: var(--text); transition: border-color .2s, background .2s;
+  }
+  .doc-card:hover { border-color: var(--orange); background: rgba(232,105,58,.05); }
+  .doc-icon { font-size: 24px; flex-shrink: 0; }
+  .doc-name { font-size: 13px; font-weight: 600; }
+  .doc-lang { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── CONTACT ─────────────────────────────────────────────────── */
+  .contact-detail { display: flex; gap: 10px; margin-bottom: 12px; font-size: 14px; }
+  .contact-detail-label { color: var(--muted); min-width: 60px; }
+  .contact-detail a { color: var(--orange); text-decoration: none; }
+
+  /* ── DISCLAIMER ──────────────────────────────────────────────── */
+  .disclaimer {
+    background: var(--bg2); border-top: 1px solid var(--border);
+    padding: 28px 40px; font-size: 11px; color: var(--muted); line-height: 1.7;
+    max-width: 1200px; margin: 0 auto;
+  }
+  .disclaimer strong { color: var(--text); }
+
+  /* ── FOOTER ──────────────────────────────────────────────────── */
+  footer {
+    background: #E5E1DB; border-top: 1px solid var(--border);
+    padding: 32px 40px; display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; transition: color .2s; }
+  footer a:hover { color: var(--orange); }
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-fca { display: flex; align-items: center; gap: 8px; }
+  .fca-badge {
+    background: rgba(232,105,58,.12); border: 1px solid rgba(232,105,58,.3);
+    color: var(--orange); font-size: 10px; font-weight: 700; padding: 3px 8px;
+    border-radius: 4px; letter-spacing: .5px;
+  }
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hero, .section, .section-full { padding-left: 20px; padding-right: 20px; }
+    .hero-stats { gap: 28px; }
+    .factsheet { justify-content: flex-start; }
+    .fact-item { min-width: 50%; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+  @media (max-width: 500px) {
+    .hero-stats { flex-direction: column; gap: 20px; }
+    .hero-stat-val { font-size: 28px; }
+    .lang-switcher { gap: 2px; }
+    .lang-btn { padding: 3px 6px; font-size: 10px; }
+  }
+
+  /* ── FEE STRUCTURE SECTION ───────────────────────────────────────────── */
+  .fee-block { margin-bottom: 2rem; }
+  .fee-block-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); font-weight: 600; margin: 0 0 14px;
+  }
+  .fee-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  }
+  @media (max-width: 600px) { .fee-grid { grid-template-columns: 1fr; } }
+  .fee-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.25rem;
+  }
+  .fee-card-head {
+    font-size: 11px; color: var(--muted); font-weight: 600;
+    margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .fee-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 6px 0; border-bottom: 1px solid var(--border); gap: 12px;
+  }
+  .fee-row:last-child { border-bottom: none; }
+  .fee-label { font-size: 13px; color: var(--muted); min-width: 0; }
+  .fee-value { font-size: 13px; font-weight: 600; text-align: right; }
+  .fee-calc-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem; margin-top: 10px;
+  }
+  .fee-calc-metrics {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; margin-bottom: 14px;
+  }
+  @media (max-width: 520px) { .fee-calc-metrics { grid-template-columns: 1fr; } }
+  .fee-calc-metric-label {
+    font-size: 11px; color: var(--muted); margin: 0 0 4px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .fee-calc-metric-value { font-size: 18px; font-weight: 700; line-height: 1.2; }
+  .fee-calc-metric-sub { font-size: 11px; color: var(--muted); margin-top: 3px; min-height: 16px; }
+  .fee-slider-block {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+  }
+  .fee-slider-block:last-child { margin-bottom: 0; }
+  .fee-slider-block label { font-size: 12px; color: var(--muted); width: 90px; flex-shrink: 0; }
+  .fee-slider-block input[type="range"] { flex: 1; accent-color: #185FA5; }
+  .fee-slider-val { font-size: 13px; font-weight: 600; width: 72px; text-align: right; flex-shrink: 0; }
+  .fee-info-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.25rem;
+  }
+  .fee-info-card p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+  .fee-prop-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;
+  }
+  .fee-prop-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem;
+  }
+  .fee-prop-icon { font-size: 22px; margin-bottom: 10px; display: block; }
+  .fee-prop-title { font-weight: 700; font-size: 14px; margin: 0 0 8px; }
+  .fee-prop-body { font-size: 13px; color: var(--muted); line-height: 1.65; }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ────────────────────────────────────────────────────────── -->
+<nav>
+  <a class="nav-logo" href="https://imaps-capital.com/eti-details/?isin=DE000AMC0B38" target="_blank">
+    <span class="nav-logo-text">ARQuant Long Short<span class="orange-line">Momentum ETI</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#performance" data-i18n="nav_performance">Performance</a></li>
+    <li><a href="#strategy" data-i18n="nav_strategy">Strategy</a></li>
+    <li><a href="#invest" data-i18n="nav_invest">How to Invest</a></li>
+    <li><a href="#documents" data-i18n="nav_documents">Documents</a></li>
+    <li><a href="#fees" data-i18n="nav_fees">Fees</a></li>
+    <li><a href="#team" data-i18n="nav_team">Management</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">EN</button>
+      <button class="lang-btn" data-lang="fr" onclick="setLanguage('fr')">FR</button>
+      <button class="lang-btn" data-lang="de" onclick="setLanguage('de')">DE</button>
+      <button class="lang-btn" data-lang="it" onclick="setLanguage('it')">IT</button>
+    </div>
+    <a class="nav-cta" href="#contact" data-i18n="nav_enquire">Enquire</a>
+  </div>
+</nav>
+
+<!-- ── HERO ───────────────────────────────────────────────────────── -->
+<div style="background: linear-gradient(160deg, #EDEAE5 0%, #F7F4EF 70%); border-bottom: 1px solid var(--border);">
+<div class="hero">
+  <a class="hero-label" href="https://www.boerse-stuttgart.de/en/products/investment-products/index-certificates/stuttgart/amc0b3" target="_blank" style="text-decoration:none;">Exchange Traded Instrument · DE000AMC0B38 ↗</a>
+  <h1>ARQuant Long Short<br/><span>Momentum ETI</span></h1>
+  <p class="hero-sub" data-i18n="hero_sub">A systematic, fully algorithmic long/short US equity strategy blended with an ETF overlay — EUR-hedged and listed on Börse Stuttgart. ETI launched May 2026.</p>
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(232,105,58,.1);border:1px solid rgba(232,105,58,.35);border-radius:6px;padding:8px 14px;margin-top:16px;font-size:12px;color:var(--orange);">
+    <span>⚠</span>
+    <span data-i18n-html="hero_simNotice"><strong>Simulated performance:</strong> figures below are based on simulation (Mar 2018 – Apr 2026). Actual ETI track record starts May 2026.</span>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="hero-stat-val">16.30%</div>
+      <div class="hero-stat-label" data-i18n="hero_stat1_label">Annualised Return</div>
+      <div class="hero-stat-sub" data-i18n="hero_stat1_sub">Simulated · after fees · EUR</div>
+    </div>
+    <div>
+      <div class="hero-stat-val orange">1.14</div>
+      <div class="hero-stat-label" data-i18n="hero_stat2_label">Sharpe Ratio</div>
+      <div class="hero-stat-sub" data-i18n="hero_stat2_sub">Simulated (Mar 2018 – Apr 2026)</div>
+    </div>
+    <div>
+      <div class="hero-stat-val">18.78%</div>
+      <div class="hero-stat-label" data-i18n="hero_stat3_label">Max Drawdown</div>
+      <div class="hero-stat-sub" data-i18n="hero_stat3_sub">Simulated period</div>
+    </div>
+    <div>
+      <div class="hero-stat-val orange">+248%</div>
+      <div class="hero-stat-label" data-i18n="hero_stat4_label">Cumulative Return</div>
+      <div class="hero-stat-sub" data-i18n="hero_stat4_sub">Mar 2018 – Apr 2026 · EUR · simulated</div>
+    </div>
+  </div>
+  <div class="hero-ctas">
+    <a class="btn-primary" href="#documents" data-i18n="hero_cta1">Download KID</a>
+    <a class="btn-secondary" href="#performance" data-i18n="hero_cta2">View Performance</a>
+  </div>
+</div>
+</div>
+
+<!-- ── FACTSHEET STRIP ─────────────────────────────────────────────── -->
+<div class="factsheet">
+  <div class="fact-item"><div class="fact-val"><a href="https://www.boerse-stuttgart.de/en/products/investment-products/index-certificates/stuttgart/amc0b3" target="_blank" style="color:inherit;text-decoration:none;">DE000AMC0B38 ↗</a></div><div class="fact-key">ISIN</div></div>
+  <div class="fact-item"><div class="fact-val">EUR</div><div class="fact-key" data-i18n="fact_denomination">Denomination</div></div>
+  <div class="fact-item"><div class="fact-val">USD</div><div class="fact-key" data-i18n="fact_baseccy">Base Currency</div></div>
+  <div class="fact-item"><div class="fact-val">May 2026</div><div class="fact-key" data-i18n="fact_inception">ETI Inception</div></div>
+  <div class="fact-item"><div class="fact-val"><a href="https://www.boerse-stuttgart.de/en/products/investment-products/index-certificates/stuttgart/amc0b3" target="_blank" style="color:inherit;text-decoration:none;">Börse Stuttgart ↗</a></div><div class="fact-key" data-i18n="fact_exchange">Exchange</div></div>
+  <div class="fact-item"><div class="fact-val"><a href="https://imaps-capital.com/actively-managed-certificates/" target="_blank" style="color:inherit;text-decoration:none;">iMaps ETI AG ↗</a></div><div class="fact-key" data-i18n="fact_issuer">Issuer</div></div>
+  <div class="fact-item"><div class="fact-val">4.50% + 20%</div><div class="fact-key" data-i18n="fact_fees">Ongoing + Perf. Fee</div></div>
+  <div class="fact-item"><div class="fact-val" style="font-size:12px;">iShares S&amp;P 500 EUR Hdg</div><div class="fact-key" data-i18n="fact_benchmark">Benchmark</div></div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ── PERFORMANCE ─────────────────────────────────────────────────── -->
+<div id="performance" class="section">
+  <div class="section-title" data-i18n="perf_title">Simulated Historical Performance</div>
+  <div class="section-heading" data-i18n="perf_heading">Consistent Returns Across Market Cycles</div>
+  <div style="background:rgba(232,105,58,.08);border:1px solid rgba(232,105,58,.3);border-radius:6px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.6;" data-i18n-html="perf_noticeHtml">
+    <strong>⚠ Simulated data — not actual ETI performance.</strong> Figures cover March 2018 to April 2026 and are based on: (1) actual ARQuant strategy returns; (2) actual SPY ETF as overlay at 30% of NAV; (3) USD returns EUR-hedged using 1-month forward EUR/USD rates derived from monthly USD and EUR interest rates; (4) adjusted for interest on margin loans and fees. The ETI (DE000AMC0B38) was incepted in May 2026. Benchmark: iShares S&amp;P 500 EUR Hedged UCITS ETF (Acc) · ISIN IE00B3ZW0K18.
+  </div>
+  <p class="section-sub" data-i18n="perf_sub">All years positive in the simulated period. EUR-denominated, after fees.</p>
+
+  <div class="chart-wrap">
+    <canvas id="perfChart"></canvas>
+  </div>
+
+  <div class="heatmap-wrap">
+    <table class="heatmap">
+      <thead>
+        <tr id="heatmapHeader">
+          <th style="text-align:left;padding-left:16px;" data-i18n="heatmap_year">Year</th>
+          <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+          <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+          <th>YTD</th>
+        </tr>
+      </thead>
+      <tbody id="heatmapBody"></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px; color:var(--muted); margin-top:10px;" data-i18n="perf_source">Source: ARQuant Management. Simulation based on actual ARQuant strategy returns and actual SPY performance (100% + 30% of NAV respectively), EUR-hedged using month-end 1-month forward rates. Past performance is not a reliable indicator of future results.</p>
+</div>
+
+<!-- ── METRICS ─────────────────────────────────────────────────────── -->
+<div class="section-full" id="metrics">
+  <div class="inner">
+    <div class="section-title" data-i18n="metrics_title">Risk &amp; Return Metrics</div>
+    <div class="section-heading" data-i18n="metrics_heading">Key Performance Statistics · After Fees</div>
+    <p class="section-sub" data-i18n="metrics_sub">Annualised figures across multiple time horizons, EUR-denominated.</p>
+    <div class="metrics-grid" id="metricsGrid"></div>
+  </div>
+</div>
+
+<!-- ── FEES ──────────────────────────────────────────────────────────── -->
+<div class="section-full" id="fees">
+  <div class="inner">
+    <div class="section-title" data-i18n="nav_fees">Fees</div>
+    <div class="section-heading" data-i18n="fees_heading">Cost Structure</div>
+
+    <!-- Block 01: One-off costs -->
+    <div class="fee-block">
+      <p class="fee-block-label" data-i18n="fees_label01">01 — One-off costs</p>
+      <div class="fee-info-card">
+        <p data-i18n-html="fees_text01">Until assets under management (AUM) reaches €2.5m, a <strong>1% fee</strong> applies to each ETI purchase or sale amount. Once AUM exceeds this threshold, the rate steps down to <strong>0.5%</strong> — improving liquidity economics for all investors.</p>
+      </div>
+    </div>
+
+    <!-- Block 02: Total ongoing charges -->
+    <div class="fee-block">
+      <p class="fee-block-label" data-i18n="fees_label02">02 — Total ongoing charges</p>
+      <div class="fee-grid">
+
+        <div class="fee-card" style="padding: 0.7rem 1.25rem;">
+          <p class="fee-card-head" data-i18n="fees_fixed_head">Fixed annual</p>
+          <div class="fee-row" style="border-bottom: none;">
+            <span class="fee-label" data-i18n="fees_fixed_label">All-in fixed costs</span>
+            <span class="fee-value">up to €15,350</span>
+          </div>
+        </div>
+
+        <div class="fee-card" style="padding: 0.7rem 1.25rem;">
+          <p class="fee-card-head" data-i18n="fees_var_head">Variable annual</p>
+          <div class="fee-row" style="border-bottom: none;">
+            <span class="fee-label" data-i18n="fees_var_label">Issuer management</span>
+            <span class="fee-value">0.20% on AUM</span>
+          </div>
+        </div>
+
+        <div class="fee-card" style="padding: 0.7rem 1.25rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: var(--bg2);">
+          <p style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;" data-i18n="fees_cap_label">All-in cap</p>
+          <p style="font-size: 28px; font-weight: 700; color: #185FA5; line-height: 1;">4.5%</p>
+          <p style="font-size: 12px; color: var(--muted); margin-top: 5px;" data-i18n="fees_cap_note">p.a. · per KID</p>
+          <p style="font-size: 11px; color: var(--muted); opacity: 0.7; margin-top: 6px; line-height: 1.5;" data-i18n-html="fees_cap_excl">excl. one-off costs<br>and performance fee</p>
+        </div>
+
+      </div>
+
+      <!-- AUM calculator -->
+      <div class="fee-calc-card">
+        <div class="fee-calc-metrics">
+          <div>
+            <p class="fee-calc-metric-label" data-i18n="fees_calc_aum">AUM</p>
+            <p class="fee-calc-metric-value" id="fee-disp-aum">€500k</p>
+            <p class="fee-calc-metric-sub"> </p>
+          </div>
+          <div>
+            <p class="fee-calc-metric-label" data-i18n="fees_calc_charges">Total ongoing charges</p>
+            <p class="fee-calc-metric-value" id="fee-disp-pct">3.23%</p>
+            <p class="fee-calc-metric-sub" id="fee-disp-cap-note" style="color: #185FA5;"> </p>
+          </div>
+          <div>
+            <p class="fee-calc-metric-label" data-i18n="fees_calc_charges2">Total ongoing charges</p>
+            <p class="fee-calc-metric-value" id="fee-disp-eur">€16,150</p>
+            <p class="fee-calc-metric-sub" style="color: var(--muted);" data-i18n="fees_per_year">per year</p>
+          </div>
+        </div>
+        <div class="fee-slider-block">
+          <label for="fee-aum-slider">AUM</label>
+          <input type="range" id="fee-aum-slider" min="100000" max="5000000" step="50000" value="500000">
+          <span class="fee-slider-val" id="fee-aum-slider-val">€500k</span>
+        </div>
+        <div class="fee-slider-block">
+          <label for="fee-ter-slider">% p.a.</label>
+          <input type="range" id="fee-ter-slider" min="0.46" max="4.50" step="0.01" value="3.23">
+          <span class="fee-slider-val" id="fee-ter-slider-val">3.23%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Block 03: Performance fee -->
+    <div class="fee-block">
+      <p class="fee-block-label" data-i18n="fees_label03">03 — Performance fee</p>
+      <div class="fee-info-card">
+        <p data-i18n-html="fees_text03"><strong>20%</strong> of positive NAV change above the high-water mark, calculated and charged quarterly. No fee is charged unless the portfolio exceeds its previous peak. Not subject to the 4.5% p.a. all-in cap.</p>
+      </div>
+    </div>
+
+    <!-- Block 04: Why this structure works -->
+    <div class="fee-block">
+      <p class="fee-block-label" data-i18n="fees_label04">04 — Why this structure works for investors</p>
+      <div class="fee-prop-grid">
+        <div class="fee-prop-card">
+          <span class="fee-prop-icon">📉</span>
+          <p class="fee-prop-title" data-i18n="fees_prop1_title">Costs fall as AUM grows</p>
+          <p class="fee-prop-body" data-i18n="fees_prop1_body">Every additional subscription spreads fixed costs across a larger investor base, driving the effective expense ratio lower for all. At €5m AUM, ARQuant ETI reaches 0.46% p.a. — below the 0.50%–1.50% p.a. typical of actively managed ETFs.</p>
+        </div>
+        <div class="fee-prop-card">
+          <span class="fee-prop-icon">🛡️</span>
+          <p class="fee-prop-title" data-i18n="fees_prop2_title">Manager has skin in the game</p>
+          <p class="fee-prop-body" data-i18n="fees_prop2_body">The Delegated Manager (ARQuant Management Limited) commits €100,000 of their own capital before any external investor enters, and will be the last to redeem. They absorb the highest cost burden at launch — demonstrating conviction, not just collecting fees.</p>
+        </div>
+        <div class="fee-prop-card">
+          <span class="fee-prop-icon">📈</span>
+          <p class="fee-prop-title" data-i18n="fees_prop3_title">Institutional economics at €2.5m+</p>
+          <p class="fee-prop-body" data-i18n="fees_prop3_body">Above €2.5m AUM the ongoing charges drop below 0.8% p.a. — comparable to actively managed long/short equity ETFs — while entry and exit fees also step down from 1.0% to 0.5%, improving liquidity economics for all investors.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── STRATEGY ────────────────────────────────────────────────────── -->
+<div id="strategy" class="section">
+  <div class="section-title" data-i18n="strategy_title">Investment Strategy</div>
+  <div class="section-heading" data-i18n="strategy_heading">How the Portfolio is Constructed</div>
+  <p class="section-sub" data-i18n-html="strategy_sub">The underlying portfolio has two components running simultaneously, both managed by ARQuant Management Limited (Delegated Manager). Benchmark: <strong>iShares S&amp;P 500 EUR Hedged UCITS ETF (Acc)</strong> · ISIN IE00B3ZW0K18.</p>
+  <div class="strategy-grid">
+    <div class="strategy-card">
+      <div class="strategy-card-icon">⚙️</div>
+      <h3 data-i18n="strat1_title">ARQuant Proprietary Strategy</h3>
+      <p data-i18n="strat1_desc">A fully automated, market-neutral Quantitative Long/Short Equity strategy active since March 2018. Constitutes 100% of portfolio notional at all times.</p>
+      <ul class="strategy-list" data-i18n-html="strat1_list">
+        <li>32 independent predictors, re-optimised every 15 minutes</li>
+        <li>Universe: all liquid US-listed stocks &amp; ETFs (up to 100 candidates quarterly)</li>
+        <li>Tradeable portfolio: 15–25 stocks, rebalanced bi-weekly</li>
+        <li>Average holding period: 3–5 business days</li>
+        <li>Kelly criterion-based leverage, gross exposure capped at 300% NAV</li>
+        <li>Stop-loss: drawdown monitored hourly vs high-water mark</li>
+      </ul>
+    </div>
+    <div class="strategy-card">
+      <div class="strategy-card-icon">📊</div>
+      <h3 data-i18n="strat2_title">ETF Overlay</h3>
+      <p data-i18n="strat2_desc">A supplementary long-side allocation to actively managed long/short US equity ETFs, providing additional diversification and market participation.</p>
+      <ul class="strategy-list" data-i18n-html="strat2_list">
+        <li>Approved basket: CLSE, FFLS, LBAY, SPY — basket may be extended</li>
+        <li>Initial deployment: CLSE only at inception</li>
+        <li>Target allocation: 30% of AUM (fixed until AUM exceeds USD 500M)</li>
+        <li>Dynamic range of 30–100% once AUM threshold is reached</li>
+        <li>Daily rebalancing; trade triggered when deviation exceeds 5% of target</li>
+        <li>EUR/USD hedge via Micro CME futures, adjusted when &gt;2.5% or €12,500 off target</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOW TO INVEST ───────────────────────────────────────────────── -->
+<div class="section-full" id="invest">
+  <div class="inner">
+    <div class="section-title" data-i18n="invest_title">How to Invest</div>
+    <div class="section-heading" data-i18n="invest_heading">Three Steps to Access the ETI</div>
+    <p class="section-sub" data-i18n="invest_sub">The certificate is listed on Börse Stuttgart and available through most brokers that provide access to European exchange-traded products.</p>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h4 data-i18n="step1_title">Read the Key Documents</h4>
+        <p data-i18n="step1_desc">Download and review the KID and Final Terms from the Documents section below or from the iMaps ETI AG website before investing.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h4 data-i18n="step2_title">Access via Your Broker</h4>
+        <p data-i18n="step2_desc">Purchase the certificate through any broker with access to Börse Stuttgart — including Interactive Brokers, Swissquote, or your regular bank or broker.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h4 data-i18n="step3_title">Search by ISIN</h4>
+        <p data-i18n-html="step3_desc">Use ISIN <strong>DE000AMC0B38</strong> to find and trade the instrument. For institutional or large ticket enquiries, contact us directly below.</p>
+      </div>
+    </div>
+    <div style="margin-top:24px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px;">
+      <div style="font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px;" data-i18n="invest_notice_title">Intended retail investor</div>
+      <p style="font-size:12px; color:var(--muted); line-height:1.65;" data-i18n="invest_notice">The product is intended for private clients who pursue the objective of general asset formation / asset optimization and have a medium to long-term investment horizon. This product is a product for investors with advanced knowledge and / or experience with financial products. The investor may bear losses up to the total loss of the capital invested and attaches no importance to a capital protection.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── ELIGIBILITY ─────────────────────────────────────────────────── -->
+<div id="eligibility" class="section">
+  <div class="section-title" data-i18n="elig_title">Distribution & Eligibility</div>
+  <div class="section-heading" data-i18n="elig_heading">ETI is Eligible For</div>
+  <div class="strategy-grid" style="margin-top:24px;grid-template-columns:repeat(3,1fr);">
+    <div class="strategy-card">
+      <div class="strategy-card-icon">🌍</div>
+      <h3 data-i18n="elig_retail_title">Retail Public Offering</h3>
+      <p data-i18n="elig_retail_desc">Germany, France, Italy, Spain, Cyprus and Switzerland.</p>
+    </div>
+    <div class="strategy-card">
+      <div class="strategy-card-icon">🌐</div>
+      <h3 data-i18n="elig_professional_title">Professional &amp; Qualified Investors</h3>
+      <p data-i18n="elig_professional_desc">Public Offering to Professional &amp; Qualified Investors in the European Union, United Kingdom, Norway, and Iceland.</p>
+    </div>
+    <div class="strategy-card">
+      <div class="strategy-card-icon">🌏</div>
+      <h3 data-i18n="elig_private_title">Private Placement</h3>
+      <p data-i18n="elig_private_desc">With accredited investors in United Kingdom, Dubai, Singapore, Hong Kong and most other Asian jurisdictions.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── DOCUMENTS ───────────────────────────────────────────────────── -->
+<div id="documents" class="section">
+  <div class="section-title" data-i18n="docs_title">Legal Documents</div>
+  <div class="section-heading" data-i18n="docs_heading">Download Centre</div>
+  <p class="section-sub" data-i18n="docs_sub">All regulatory disclosure documents are available below. Investors should read the applicable Key Information Document (KID) and offering documentation relevant to their jurisdiction before making any investment decision.</p>
+  <div class="docs-grid" id="docsGrid"></div>
+</div>
+
+<!-- ── TEAM ────────────────────────────────────────────────────────── -->
+<div class="section-full" id="team">
+  <div class="inner">
+    <div class="strategy-grid">
+      <div class="strategy-card">
+        <div class="section-title" data-i18n="team_issuer_title">Investment Manager</div>
+        <div class="section-heading" style="font-size:20px;margin-bottom:16px;">iMaps ETI AG</div>
+        <p style="color:var(--muted);font-size:13.5px;line-height:1.65;margin-bottom:20px;" data-i18n="team_issuer_desc">iMaps ETI AG is a company duly registered under the laws of Liechtenstein. The company is authorised to issue derivative securities to the public in the European Economic Area as well as in Switzerland under an Issuance Programme approved by the Financial Markets Authority in Liechtenstein. The company is further authorised to provide investment management and any other financial services to its parent company, its subsidiaries as well as to any subsidiary of its parent company.</p>
+        <a href="https://imaps-capital.com/" target="_blank" class="btn-primary" style="display:inline-flex;align-items:center;gap:8px;" data-i18n="team_issuer_cta">Visit website ↗</a>
+      </div>
+      <div class="strategy-card">
+        <div class="section-title" data-i18n="team_manager_title">Delegated Manager</div>
+        <div class="section-heading" style="font-size:20px;margin-bottom:16px;">ARQuant Management Limited</div>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:20px;line-height:1.65;" data-i18n="team_desc">ARQuant Management Limited is authorised and regulated by the Financial Conduct Authority (FRN 947270). Registered in England &amp; Wales, Company No. 13034143. For full team profiles, track record and strategy details, visit the firm's website.</p>
+        <a href="https://www.arquant.co.uk" target="_blank" class="btn-primary" style="display:inline-flex;align-items:center;gap:8px;" data-i18n="team_cta">Visit website ↗</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONTACT ─────────────────────────────────────────────────────── -->
+<div id="contact" class="section">
+  <div class="section-title" data-i18n="contact_title">Contact</div>
+  <div class="section-heading" data-i18n="contact_heading">Get in Touch</div>
+  <p style="color:var(--muted);font-size:14px;margin-bottom:32px;max-width:580px;" data-i18n="contact_sub">Please direct your enquiry to the relevant party below.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <div class="strategy-card">
+      <div class="strategy-card-icon">📋</div>
+      <h3 style="margin-bottom:10px;" data-i18n="contact_issuer_title">Enquire about the ETI</h3>
+      <p style="font-size:13.5px;color:var(--muted);margin-bottom:20px;" data-i18n="contact_issuer_desc">For questions about the certificate structure, issuance, listing, KID, or investing in DE000AMC0B38, contact the Issuer directly.</p>
+      <div class="contact-detail"><span class="contact-detail-label" data-i18n="contact_issuer_lbl">Issuer</span><span>iMaps ETI AG</span></div>
+      <div class="contact-detail"><span class="contact-detail-label">Web</span><a href="https://imaps-capital.com/get-in-touch/" target="_blank">imaps-capital.com ↗</a></div>
+      <div class="contact-detail"><span class="contact-detail-label">Email</span><a href="mailto:solutions@imaps-capital.com">solutions@imaps-capital.com</a></div>
+      <div class="contact-detail"><span class="contact-detail-label" data-i18n="contact_tel">Tel</span><a href="tel:+4237982649">+423 798 26 49</a></div>
+    </div>
+    <div class="strategy-card">
+      <div class="strategy-card-icon">⚙️</div>
+      <h3 style="margin-bottom:10px;" data-i18n="contact_manager_title">Enquire about the Underlying Strategy</h3>
+      <p style="font-size:13.5px;color:var(--muted);margin-bottom:20px;" data-i18n="contact_manager_desc">For questions about the ARQuant investment strategy, performance, or the Delegated Investment Manager, contact ARQuant directly.</p>
+      <div class="contact-detail"><span class="contact-detail-label" data-i18n="contact_manager_lbl">Manager</span><span>ARQuant Management Limited</span></div>
+      <div class="contact-detail"><span class="contact-detail-label">Web</span><a href="https://www.arquant.co.uk" target="_blank">www.arquant.co.uk ↗</a></div>
+      <div class="contact-detail"><span class="contact-detail-label">Email</span><a href="mailto:info@arquant.co.uk">info@arquant.co.uk</a></div>
+      <div class="contact-detail"><span class="contact-detail-label" data-i18n="contact_tel">Tel</span><a href="tel:+443330509302">+44 333 050 9302</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DISCLAIMER ──────────────────────────────────────────────────── -->
+<div class="section-full" style="padding-top:32px; padding-bottom:32px;">
+  <div class="inner">
+    <div class="disclaimer" style="max-width:100%; padding:0;" data-i18n-html="disclaimer_html">
+      <strong style="font-size:12px;color:var(--text);">Disclosure &amp; Disclaimer</strong><br/><br/>
+      Information presented here should be read as an introduction to the base prospectus of the Issuer of the ETI Securities dated 3rd April 2025 (the "Base Prospectus"). This Base Prospectus has been approved by the Liechtenstein Financial Market Authority (the "FMA"), as the competent authority in Liechtenstein under Regulation (EU) 2017/1129 of the European Parliament and of the Council of 14 June 2017 on the prospectus to be published when securities are offered to the public or admitted to trading on a regulated market (the "Prospectus Regulation"). The contact details of the FMA are: Landstrasse 109, Postfach 279, 9490 Vaduz, Liechtenstein; Telephone: +423 236 73 73; Fax: +423 236 72 38; e-mail: info@fma-li.li.<br/><br/>
+      <strong style="color:var(--text);">Information about Investment Manager</strong><br/>
+      iMaps ETI AG acts as the Investment Manager and Issuer of the ETI Securities.<br/><br/>
+      <strong style="color:var(--text);">Information about Delegated Manager</strong><br/>
+      ARQuant Management Limited (<em>ARQuant</em> or the <em>Firm</em>) is a private company incorporated in England and Wales under the company number 13034143, with its registered office at 167-169 Great Portland Street, Fifth Floor, London, W1W 5PF. ARQuant Management Limited is authorised and regulated by the Financial Conduct Authority (the "FCA") under reference number: 947270. ARQuant Management Limited acts as the Delegated Investment Manager of the Portfolio in relation to the ETI Securities.<br/><br/>
+      <strong style="color:var(--text);">Simulated performance</strong><br/>
+      All performance figures shown cover March 2018 to April 2026 and represent simulated results, not actual ETI performance. The ETI (DE000AMC0B38) was incepted in May 2026. Simulation is based on actual historical returns of the ARQuant strategy and actual SPY ETF returns (at 100% and 30% of NAV respectively), with USD returns EUR-hedged using 1-month forward EUR/USD rates derived from monthly interest rates, and adjusted for margin loan interest and applicable fees and commissions. Past performance is not a guarantee of future results. The information contained in this marketing material is not investment research. Some information has been obtained from public sources believed to be reliable, but accuracy, completeness and currency cannot be guaranteed.<br/><br/>
+      <strong style="color:var(--text);">Marketing Restrictions</strong><br/>
+      This page constitutes a marketing communication and is not a substitute for the Key Information Document (KID) required under PRIIPs Regulation, or for the Base Prospectus dated 3 April 2025 approved by the Liechtenstein Financial Market Authority (FMA). Read both before investing at the Issuer's website (imaps-capital.com). The prospectus is available free of charge on the Issuer's website <a href="https://imaps-capital.com" target="_blank" style="color:var(--orange);">https://imaps-capital.com</a>.<br/><br/>
+      This page does not constitute an offer to sell or a solicitation of an offer to buy any securities. Any investment decision should be made solely on the basis of the approved prospectus, which contains detailed information about the ETI Securities, including risks, charges, and expenses. Investors are advised to consult professional advisors before making any investment.<br/><br/>
+      The release and distribution of marketing material and other information relating to securities in certain jurisdictions may be restricted by law, and it must not be relied upon if inaccurate, misleading, or inconsistent with the prospectus. Unless expressly stated to the contrary, this material is intended only for persons who are permitted recipients of this material in the jurisdiction in which the recipient of this material is or belongs. Failure to comply with such restrictions may constitute a violation of the securities laws of that jurisdiction.
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ──────────────────────────────────────────────────────── -->
+<footer>
+  <div>
+    <div style="font-weight:600; margin-bottom:4px; color:var(--text);">ARQuant Long Short Momentum ETI</div>
+    <div data-i18n="footer_copy">© 2026 ARQuant Management Limited · All rights reserved</div>
+  </div>
+  <div class="footer-links">
+    <a href="https://imaps-capital.com/privacy-policy/" target="_blank" data-i18n="footer_privacy">Privacy</a>
+    <a href="https://imaps-capital.com/disclaimer/" target="_blank" data-i18n="footer_disclaimer">Disclaimer</a>
+    <a href="https://www.arquant.co.uk" target="_blank">ARQuant Management</a>
+    <a href="https://imaps-capital.com" target="_blank">iMaps ETI AG</a>
+  </div>
+</footer>
+
+<!-- ── DATA + CHARTS + i18n ────────────────────────────────────────── -->
+<script>
+// ── Performance data — update monthly ────────────────────────────────
+const PERF = {
+  2018: [null, null, null, 2.25, 5.90, 4.18, -0.11, 9.46, 0.13, -4.69, -1.48, 1.92],
+  2019: [-13.65, 1.58, 0.71, -1.14, -2.08, 0.01, -0.35, -0.37, -0.04, 0.50, -0.08, 0.94],
+  2020: [0.57, 4.11, -0.95, 3.11, 2.65, 15.40, 14.69, 6.89, 4.92, -3.28, 3.84, 0.00],
+  2021: [0.31, 4.15, 0.79, 6.13, -2.42, 0.65, 4.90, 1.74, -3.53, 4.41, 4.75, 5.35],
+  2022: [4.79, 7.95, 4.18, -3.58, -0.42, -3.47, 2.48, 6.63, -0.92, -4.21, 1.57, 3.17],
+  2023: [6.13, -1.15, 3.55, -1.29, 2.75, 3.53, 2.73, 0.18, 1.02, -2.81, 6.68, 0.76],
+  2024: [7.32, -1.96, 2.50, 0.78, 0.80, -0.16, -4.61, -0.70, 0.82, -2.16, 4.71, 0.12],
+  2025: [-2.47, 2.44, -0.21, 2.00, 2.63, -2.20, 0.64, -1.76, 0.14, 1.77, 1.32, -1.60],
+  2026: [0.71, -1.96, -1.95, 2.55, null, null, null, null, null, null, null, null],
+};
+const SP500_HDG = {
+  2018: [null, null, -4.29, 1.57, 1.53, 0.85, 2.56, 2.93, 0.58, -7.19, 0.69, -8.50],
+  2019: [7.38, 3.41, 1.21, 3.54, -5.74, 5.75, 2.65, -3.20, 1.81, 1.46, 3.93, 2.73],
+  2020: [-0.03, -10.08, -9.55, 10.35, 3.48, 1.95, 5.17, 7.89, -3.52, -3.39, 10.18, 3.78],
+  2021: [-0.29, 3.03, 3.80, 4.90, 0.33, 2.46, 2.39, 3.13, -4.03, 5.63, -0.15, 4.57],
+  2022: [-7.14, -1.70, 4.73, -8.51, -2.41, -8.73, 8.45, -2.82, -8.32, 5.49, 2.04, -3.55],
+  2023: [5.51, -1.66, 2.40, 1.58, 0.41, 6.33, 3.12, -1.41, -4.84, -3.37, 8.79, 5.14],
+  2024: [1.98, 3.97, 3.43, -3.32, 2.41, 5.64, 0.40, 1.15, 2.37, -0.22, 5.39, -1.95],
+  2025: [3.13, -3.65, -5.63, -0.77, 6.85, 4.68, 3.20, 0.82, 2.89, 2.94, -0.16, 0.80],
+  2026: [0.30, -0.88, -6.58, 10.94, null, null, null, null, null, null, null, null],
+};
+const METRICS = [
+  { ret: 16.30, vol: 13.51, rfr: 0.98, sharpe: 1.14, dd: 18.78 },
+  { ret: 14.58, vol: 10.62, rfr: 1.71, sharpe: 1.20, dd: 7.31 },
+  { ret: 13.89, vol: 10.61, rfr: 1.90, sharpe: 1.13, dd: 7.31 },
+  { ret: 7.05, vol: 8.98, rfr: 2.88, sharpe: 0.50, dd: 6.71 },
+  { ret: -2.46, vol: 6.00, rfr: 1.93, sharpe: -0.75, dd: 4.89 },
+];
+
+// ── KID document links per language ──────────────────────────────────
+const KID_LINKS = {
+  en: { url: 'https://imaps-capital.com/eti-details/?isin=DE000AMC0B38', name: 'Key Information Document', sublabel: 'English' },
+  fr: { url: 'https://imaps-capital.com/eti-details/?isin=DE000AMC0B38', name: 'Document d\'Informations Clés', sublabel: 'Français' },
+  de: { url: 'https://imaps-capital.com/eti-details/?isin=DE000AMC0B38', name: 'Basisinformationsblatt', sublabel: 'Deutsch' },
+  it: { url: 'https://imaps-capital.com/eti-details/?isin=DE000AMC0B38', name: 'Documento Informazioni Chiave', sublabel: 'Italiano' },
+};
+
+// ── Translations ──────────────────────────────────────────────────────
+const T = {
+
+en: {
+  nav_performance: 'Performance',
+  nav_strategy: 'Strategy',
+  nav_fees: 'Fees',
+  nav_invest: 'How to Invest',
+  nav_documents: 'Documents',
+  nav_team: 'Management',
+  nav_enquire: 'Enquire',
+  hero_sub: 'A systematic, fully algorithmic long/short US equity strategy blended with an ETF overlay — EUR-hedged and listed on Börse Stuttgart. ETI launched May 2026.',
+  hero_simNotice: '<strong>Simulated performance:</strong> figures below are based on simulation (Mar 2018 – Apr 2026). Actual ETI track record starts May 2026.',
+  hero_stat1_label: 'Annualised Return',
+  hero_stat1_sub: 'Simulated · after fees · EUR',
+  hero_stat2_label: 'Sharpe Ratio',
+  hero_stat2_sub: 'Simulated (Mar 2018 – Apr 2026)',
+  hero_stat3_label: 'Max Drawdown',
+  hero_stat3_sub: 'Simulated period',
+  hero_stat4_label: 'Cumulative Return',
+  hero_stat4_sub: 'Mar 2018 – Apr 2026 · EUR · simulated',
+  hero_cta1: 'Download KID',
+  hero_cta2: 'View Performance',
+  fact_denomination: 'Denomination',
+  fact_baseccy: 'Base Currency',
+  fact_inception: 'ETI Inception',
+  fact_exchange: 'Exchange',
+  fact_issuer: 'Issuer',
+  fact_fees: 'Ongoing + Perf. Fee',
+  fact_benchmark: 'Benchmark',
+  heatmap_year: 'Year',
+  perf_title: 'Simulated Historical Performance',
+  perf_heading: 'Consistent Returns Across Market Cycles',
+  perf_noticeHtml: '<strong>⚠ Simulated data — not actual ETI performance.</strong> Figures cover March 2018 to April 2026 and are based on: (1) actual ARQuant strategy returns; (2) actual SPY ETF as overlay at 30% of NAV; (3) USD returns EUR-hedged using 1-month forward EUR/USD rates derived from monthly USD and EUR interest rates; (4) adjusted for interest on margin loans and fees. The ETI (DE000AMC0B38) was incepted in May 2026. Benchmark: iShares S&P 500 EUR Hedged UCITS ETF (Acc) · ISIN IE00B3ZW0K18.',
+  perf_sub: 'All years positive in the simulated period. EUR-denominated, after fees.',
+  perf_source: 'Source: ARQuant Management. Simulation based on actual ARQuant strategy returns and actual SPY performance (100% + 30% of NAV respectively), EUR-hedged using month-end 1-month forward rates. Past performance is not a reliable indicator of future results.',
+  metrics_title: 'Risk & Return Metrics',
+  metrics_heading: 'Key Performance Statistics · After Fees',
+  metrics_sub: 'Annualised figures across multiple time horizons, EUR-denominated.',
+  metricPeriods: ["Since Inception (Mar'18)", 'Since Jan 2021', 'Last 60 Months', 'Last 36 Months', 'Last 12 Months'],
+  metric_ret: 'Ann. Return',
+  metric_vol: 'Volatility',
+  metric_rfr: 'Risk-Free Rate',
+  metric_sharpe: 'Sharpe',
+  metric_dd: 'Max Drawdown',
+  chart_label: 'Indexed Performance (base 100, EUR, after fees)',
+  chart_label2: 'iShares S&P 500 EUR Hedged',
+  months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  strategy_title: 'Investment Strategy',
+  strategy_heading: 'How the Portfolio is Constructed',
+  strategy_sub: 'The underlying portfolio has two components running simultaneously, both managed by ARQuant Management Limited (Delegated Manager). Benchmark: <strong>iShares S&P 500 EUR Hedged UCITS ETF (Acc)</strong> · ISIN IE00B3ZW0K18.',
+  strat1_title: 'ARQuant Proprietary Strategy',
+  strat1_desc: 'A fully automated, market-neutral Quantitative Long/Short Equity strategy active since March 2018. Constitutes 100% of portfolio notional at all times.',
+  strat1_list: '<li>32 independent predictors, re-optimised every 15 minutes</li><li>Universe: all liquid US-listed stocks & ETFs (up to 100 candidates quarterly)</li><li>Tradeable portfolio: 15–25 stocks, rebalanced bi-weekly</li><li>Average holding period: 3–5 business days</li><li>Kelly criterion-based leverage, gross exposure capped at 300% NAV</li><li>Stop-loss: drawdown monitored hourly vs high-water mark</li>',
+  strat2_title: 'ETF Overlay',
+  strat2_desc: 'A supplementary long-side allocation to actively managed long/short US equity ETFs, providing additional diversification and market participation.',
+  strat2_list: '<li>Approved basket: CLSE, FFLS, LBAY, SPY — basket may be extended</li><li>Initial deployment: CLSE only at inception</li><li>Target allocation: 30% of AUM (fixed until AUM exceeds USD 500M)</li><li>Dynamic range of 30–100% once AUM threshold is reached</li><li>Daily rebalancing; trade triggered when deviation exceeds 5% of target</li><li>EUR/USD hedge via Micro CME futures, adjusted when &gt;2.5% or €12,500 off target</li>',
+  invest_title: 'How to Invest',
+  invest_heading: 'Three Steps to Access the ETI',
+  invest_sub: 'The certificate is listed on Börse Stuttgart and available through most brokers that provide access to European exchange-traded products.',
+  step1_title: 'Read the Key Documents',
+  step1_desc: 'Download and review the KID and Final Terms from the Documents section below or from the iMaps ETI AG website before investing.',
+  step2_title: 'Access via Your Broker',
+  step2_desc: 'Purchase the certificate through any broker with access to Börse Stuttgart — including Interactive Brokers, Swissquote, or your regular bank or broker.',
+  step3_title: 'Search by ISIN',
+  step3_desc: 'Use ISIN <strong>DE000AMC0B38</strong> to find and trade the instrument. For institutional or large ticket enquiries, contact us directly below.',
+  invest_notice_title: 'Intended retail investor',
+  invest_notice: 'The product is intended for private clients who pursue the objective of general asset formation / asset optimization and have a medium to long-term investment horizon. This product is a product for investors with advanced knowledge and / or experience with financial products. The investor may bear losses up to the total loss of the capital invested and attaches no importance to a capital protection.',
+  elig_title: 'Distribution & Eligibility',
+  elig_heading: 'ETI is Eligible For',
+  elig_retail_title: 'Retail Public Offering',
+  elig_retail_desc: 'Germany, France, Italy, Spain, Cyprus and Switzerland.',
+  elig_professional_title: 'Professional & Qualified Investors',
+  elig_professional_desc: 'Public Offering to Professional & Qualified Investors in the European Union, United Kingdom, Norway, and Iceland.',
+  elig_private_title: 'Private Placement',
+  elig_private_desc: 'With accredited investors in United Kingdom, Dubai, Singapore, Hong Kong and most other Asian jurisdictions.',
+  docs_title: 'Legal Documents',
+  docs_heading: 'Download Centre',
+  docs_sub: 'All regulatory disclosure documents are available below. Investors should read the applicable Key Information Document (KID) and offering documentation relevant to their jurisdiction before making any investment decision.',
+  mandate_name: 'Investment Mandate',
+  finalterms_name: 'Final Terms & Conditions',
+  team_issuer_title: 'Investment Manager',
+  team_manager_title: 'Delegated Manager',
+  team_issuer_desc: 'iMaps ETI AG is a company duly registered under the laws of Liechtenstein. The company is authorised to issue derivative securities to the public in the European Economic Area as well as in Switzerland under an Issuance Programme approved by the Financial Markets Authority in Liechtenstein. The company is further authorised to provide investment management and any other financial services to its parent company, its subsidiaries as well as to any subsidiary of its parent company.',
+  team_issuer_cta: 'Visit website ↗',
+  team_desc: 'ARQuant Management Limited is authorised and regulated by the Financial Conduct Authority (FRN 947270). Registered in England & Wales, Company No. 13034143. For full team profiles, track record and strategy details, visit the firm\'s website.',
+  team_cta: 'Visit website ↗',
+  contact_title: 'Contact',
+  contact_heading: 'Get in Touch',
+  contact_sub: 'Please direct your enquiry to the relevant party below.',
+  contact_issuer_title: 'Enquire about the ETI',
+  contact_issuer_desc: 'For questions about the certificate structure, issuance, listing, KID, or investing in DE000AMC0B38, contact the Issuer directly.',
+  contact_issuer_lbl: 'Issuer',
+  contact_manager_title: 'Enquire about the Underlying Strategy',
+  contact_manager_desc: 'For questions about the ARQuant investment strategy, performance, or the Delegated Investment Manager, contact ARQuant directly.',
+  contact_manager_lbl: 'Manager',
+  contact_tel: 'Tel',
+  disclaimer_html: '<strong style="font-size:12px;color:var(--text);">Disclosure &amp; Disclaimer</strong><br/><br/>Information presented here should be read as an introduction to the base prospectus of the Issuer of the ETI Securities dated 3rd April 2025 (the "Base Prospectus"). This Base Prospectus has been approved by the Liechtenstein Financial Market Authority (the "FMA"), as the competent authority in Liechtenstein under Regulation (EU) 2017/1129 of the European Parliament and of the Council of 14 June 2017 on the prospectus to be published when securities are offered to the public or admitted to trading on a regulated market (the "Prospectus Regulation"). The contact details of the FMA are: Landstrasse 109, Postfach 279, 9490 Vaduz, Liechtenstein; Telephone: +423 236 73 73; Fax: +423 236 72 38; e-mail: info@fma-li.li.<br/><br/><strong style="color:var(--text);">Information about Investment Manager</strong><br/>iMaps ETI AG acts as the Investment Manager and Issuer of the ETI Securities.<br/><br/><strong style="color:var(--text);">Information about Delegated Manager</strong><br/>ARQuant Management Limited (<em>ARQuant</em> or the <em>Firm</em>) is a private company incorporated in England and Wales under the company number 13034143, with its registered office at 167-169 Great Portland Street, Fifth Floor, London, W1W 5PF. ARQuant Management Limited is authorised and regulated by the Financial Conduct Authority (the "FCA") under reference number: 947270. ARQuant Management Limited acts as the Delegated Investment Manager of the Portfolio in relation to the ETI Securities.<br/><br/><strong style="color:var(--text);">Simulated performance</strong><br/>All performance figures shown cover March 2018 to April 2026 and represent simulated results, not actual ETI performance. The ETI (DE000AMC0B38) was incepted in May 2026. Simulation is based on actual historical returns of the ARQuant strategy and actual SPY ETF returns (at 100% and 30% of NAV respectively), with USD returns EUR-hedged using 1-month forward EUR/USD rates derived from monthly interest rates, and adjusted for margin loan interest and applicable fees and commissions. Past performance is not a guarantee of future results. The information contained in this marketing material is not investment research. Some information has been obtained from public sources believed to be reliable, but accuracy, completeness and currency cannot be guaranteed.<br/><br/><strong style="color:var(--text);">Marketing Restrictions</strong><br/>This page constitutes a marketing communication and is not a substitute for the Key Information Document (KID) required under PRIIPs Regulation, or for the Base Prospectus dated 3 April 2025 approved by the Liechtenstein Financial Market Authority (FMA). Read both before investing at the Issuer\'s website (imaps-capital.com). The prospectus is available free of charge on the Issuer\'s website <a href="https://imaps-capital.com" target="_blank" style="color:var(--orange);">https://imaps-capital.com</a>.<br/><br/>This page does not constitute an offer to sell or a solicitation of an offer to buy any securities. Any investment decision should be made solely on the basis of the approved prospectus, which contains detailed information about the ETI Securities, including risks, charges, and expenses. Investors are advised to consult professional advisors before making any investment.<br/><br/>The release and distribution of marketing material and other information relating to securities in certain jurisdictions may be restricted by law, and it must not be relied upon if inaccurate, misleading, or inconsistent with the prospectus. Unless expressly stated to the contrary, this material is intended only for persons who are permitted recipients of this material in the jurisdiction in which the recipient of this material is or belongs. Failure to comply with such restrictions may constitute a violation of the securities laws of that jurisdiction.',
+  fees_heading: 'Cost Structure',
+  fees_label01: '01 — One-off costs',
+  fees_text01: 'Until assets under management (AUM) reaches €2.5m, a <strong>1% fee</strong> applies to each ETI purchase or sale amount. Once AUM exceeds this threshold, the rate steps down to <strong>0.5%</strong> — improving liquidity economics for all investors.',
+  fees_label02: '02 — Total ongoing charges',
+  fees_fixed_head: 'Fixed annual',
+  fees_fixed_label: 'All-in fixed costs',
+  fees_var_head: 'Variable annual',
+  fees_var_label: 'Issuer management',
+  fees_cap_label: 'All-in cap',
+  fees_cap_note: 'p.a. · per KID',
+  fees_cap_excl: 'excl. one-off costs<br>and performance fee',
+  fees_calc_aum: 'AUM',
+  fees_calc_charges: 'Total ongoing charges',
+  fees_calc_charges2: 'Total ongoing charges',
+  fees_per_year: 'per year',
+  fees_cap_applied: 'cap applied',
+  fees_label03: '03 — Performance fee',
+  fees_text03: '<strong>20%</strong> of positive NAV change above the high-water mark, calculated and charged quarterly. No fee is charged unless the portfolio exceeds its previous peak. Not subject to the 4.5% p.a. all-in cap.',
+  fees_label04: '04 — Why this structure works for investors',
+  fees_prop1_title: 'Costs fall as AUM grows',
+  fees_prop1_body: 'Every additional subscription spreads fixed costs across a larger investor base, driving the effective expense ratio lower for all. At €5m AUM, ARQuant ETI reaches 0.46% p.a. — below the 0.50%–1.50% p.a. typical of actively managed ETFs.',
+  fees_prop2_title: 'Manager has skin in the game',
+  fees_prop2_body: 'The Delegated Manager (ARQuant Management Limited) commits €100,000 of their own capital before any external investor enters, and will be the last to redeem. They absorb the highest cost burden at launch — demonstrating conviction, not just collecting fees.',
+  fees_prop3_title: 'Institutional economics at €2.5m+',
+  fees_prop3_body: 'Above €2.5m AUM the ongoing charges drop below 0.8% p.a. — comparable to actively managed long/short equity ETFs — while entry and exit fees also step down from 1.0% to 0.5%, improving liquidity economics for all investors.',
+  footer_copy: '© 2026 ARQuant Management Limited · All rights reserved',
+  footer_privacy: 'Privacy',
+  footer_disclaimer: 'Disclaimer',
+  footer_fca: 'Authorised & Regulated · FRN 947270',
+},
+
+fr: {
+  nav_performance: 'Performance',
+  nav_strategy: 'Stratégie',
+  nav_fees: 'Frais',
+  nav_invest: 'Comment Investir',
+  nav_documents: 'Documents',
+  nav_team: 'Gestion',
+  nav_enquire: 'Nous Contacter',
+  hero_sub: 'Une stratégie systématique actions américaines long/court entièrement algorithmique, combinée à une allocation ETF — couverte en EUR et cotée à la Bourse de Stuttgart. ETI lancé en mai 2026.',
+  hero_simNotice: '<strong>Performance simulée :</strong> les chiffres ci-dessous sont basés sur une simulation (mars 2018 – avril 2026). Le track record réel de l\'ETI débute en mai 2026.',
+  hero_stat1_label: 'Rendement Annualisé',
+  hero_stat1_sub: 'Simulé · après frais · EUR',
+  hero_stat2_label: 'Ratio de Sharpe',
+  hero_stat2_sub: 'Simulé (mars 2018 – avril 2026)',
+  hero_stat3_label: 'Drawdown Maximum',
+  hero_stat3_sub: 'Période simulée',
+  hero_stat4_label: 'Rendement Cumulé',
+  hero_stat4_sub: 'Mars 2018 – Avril 2026 · EUR · simulé',
+  hero_cta1: 'Télécharger le DIC',
+  hero_cta2: 'Voir la Performance',
+  fact_denomination: 'Devise',
+  fact_baseccy: 'Devise de Base',
+  fact_inception: 'Lancement de l\'ETI',
+  fact_exchange: 'Bourse',
+  fact_issuer: 'Émetteur',
+  fact_fees: 'Frais Continus + Perf.',
+  fact_benchmark: 'Indice de Référence',
+  heatmap_year: 'Année',
+  perf_title: 'Performance Historique Simulée',
+  perf_heading: 'Des Rendements Réguliers à Travers les Cycles de Marché',
+  perf_noticeHtml: '<strong>⚠ Données simulées — pas la performance réelle de l\'ETI.</strong> Les chiffres couvrent mars 2018 à avril 2026 et se basent sur : (1) les rendements réels de la stratégie ARQuant ; (2) l\'ETF SPY réel en overlay à 30% de la VNI ; (3) les rendements USD couverts en EUR via des taux forward EUR/USD à un mois dérivés des taux d\'intérêt mensuels ; (4) ajustés des intérêts sur emprunts de marge et des frais. L\'ETI (DE000AMC0B38) a été lancé en mai 2026. Indice de référence : iShares S&P 500 EUR Hedged UCITS ETF (Acc) · ISIN IE00B3ZW0K18.',
+  perf_sub: 'Toutes les années positives sur la période simulée. En EUR, après frais.',
+  perf_source: 'Source : ARQuant Management. Simulation basée sur les rendements réels de la stratégie ARQuant et les performances réelles du SPY (100% + 30% de la VNI respectivement), couverts en EUR via des taux forward à un mois de fin de mois. Les performances passées ne constituent pas un indicateur fiable des résultats futurs.',
+  metrics_title: 'Métriques de Risque et de Rendement',
+  metrics_heading: 'Statistiques de Performance Clés · Après Frais',
+  metrics_sub: 'Chiffres annualisés sur plusieurs horizons temporels, libellés en EUR.',
+  metricPeriods: ['Depuis l\'Inception (Mars 2018)', 'Depuis Jan 2021', '60 Derniers Mois', '36 Derniers Mois', '12 Derniers Mois'],
+  metric_ret: 'Rendement Ann.',
+  metric_vol: 'Volatilité',
+  metric_rfr: 'Taux Sans Risque',
+  metric_sharpe: 'Sharpe',
+  metric_dd: 'Drawdown Max',
+  chart_label: 'Performance Indexée (base 100, EUR, après frais)',
+  chart_label2: 'iShares S&P 500 couvert EUR',
+  months: ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'],
+  strategy_title: 'Stratégie d\'Investissement',
+  strategy_heading: 'Construction du Portefeuille',
+  strategy_sub: 'Le portefeuille sous-jacent comporte deux composantes fonctionnant simultanément, toutes deux gérées par ARQuant Management Limited (Gestionnaire Délégué). Indice de référence : <strong>iShares S&P 500 EUR Hedged UCITS ETF (Acc)</strong> · ISIN IE00B3ZW0K18.',
+  strat1_title: 'Stratégie Propriétaire ARQuant',
+  strat1_desc: 'Une stratégie actions long/court quantitative entièrement automatisée et neutre au marché, active depuis mars 2018. Représente 100% du notionnel du portefeuille en permanence.',
+  strat1_list: '<li>32 indicateurs indépendants, réoptimisés toutes les 15 minutes</li><li>Univers : toutes les actions et ETF cotés aux États-Unis (jusqu\'à 100 candidats par trimestre)</li><li>Portefeuille négociable : 15 à 25 actions, rééquilibré bihebdomadairement</li><li>Durée de détention moyenne : 3 à 5 jours ouvrables</li><li>Effet de levier basé sur le critère de Kelly, exposition brute plafonnée à 300% de la VNI</li><li>Stop-loss : drawdown surveillé toutes les heures par rapport à la valeur haute</li>',
+  strat2_title: 'Allocation en ETF',
+  strat2_desc: 'Une allocation complémentaire côté acheteur à des ETF actions américaines long/court à gestion active, offrant une diversification et une participation supplémentaires au marché.',
+  strat2_list: '<li>Panier approuvé : CLSE, FFLS, LBAY, SPY — le panier peut être étendu</li><li>Déploiement initial : CLSE uniquement au lancement</li><li>Allocation cible : 30% de l\'AUM (fixe jusqu\'à ce que l\'AUM dépasse 500M USD)</li><li>Plage dynamique de 30 à 100% une fois le seuil d\'AUM atteint</li><li>Rééquilibrage quotidien ; ordre déclenché si l\'écart dépasse 5% de la cible</li><li>Couverture EUR/USD via contrats Micro CME, ajustée si écart > 2,5% ou 12 500 €</li>',
+  invest_title: 'Comment Investir',
+  invest_heading: 'Trois Étapes pour Accéder à l\'ETI',
+  invest_sub: 'Le certificat est coté à la Bourse de Stuttgart et accessible via la plupart des courtiers offrant un accès aux produits négociés en bourse européens.',
+  step1_title: 'Lire les Documents Clés',
+  step1_desc: 'Téléchargez et consultez le DIC et les Conditions Finales dans la section Documents ci-dessous ou sur le site d\'iMaps ETI AG avant d\'investir.',
+  step2_title: 'Accéder via Votre Courtier',
+  step2_desc: 'Achetez le certificat via tout courtier ayant accès à la Bourse de Stuttgart — notamment Interactive Brokers, Swissquote ou votre banque habituelle.',
+  step3_title: 'Rechercher par ISIN',
+  step3_desc: 'Utilisez l\'ISIN <strong>DE000AMC0B38</strong> pour trouver et négocier l\'instrument. Pour les demandes institutionnelles ou les tickets importants, contactez-nous directement ci-dessous.',
+  invest_notice_title: 'Investisseur de détail cible',
+  invest_notice: 'Le produit est destiné aux clients privés qui poursuivent l\'objectif de formation générale d\'actifs / d\'optimisation d\'actifs et ont un horizon d\'investissement à moyen ou long terme. Ce produit s\'adresse à des investisseurs ayant des connaissances avancées et/ou une expérience des produits financiers. L\'investisseur peut subir des pertes allant jusqu\'à la perte totale du capital investi et n\'accorde pas d\'importance à une protection du capital.',
+  elig_title: 'Distribution et Éligibilité',
+  elig_heading: 'L\'ETI est Éligible pour',
+  elig_retail_title: 'Offre Publique au Détail',
+  elig_retail_desc: 'Allemagne, France, Italie, Espagne, Chypre et Suisse.',
+  elig_professional_title: 'Investisseurs Professionnels et Qualifiés',
+  elig_professional_desc: 'Offre publique aux Investisseurs Professionnels et Qualifiés dans l\'Union européenne, au Royaume-Uni, en Norvège et en Islande.',
+  elig_private_title: 'Placement Privé',
+  elig_private_desc: 'Avec des investisseurs accrédités au Royaume-Uni, à Dubaï, à Singapour, à Hong Kong et dans la plupart des autres juridictions asiatiques.',
+  docs_title: 'Documents Légaux',
+  docs_heading: 'Centre de Téléchargement',
+  docs_sub: 'Tous les documents d\'information réglementaires sont disponibles ci-dessous. Les investisseurs doivent lire le Document d\'Informations Clés (DIC) applicable et la documentation d\'offre pertinente pour leur juridiction avant toute décision d\'investissement.',
+  mandate_name: 'Mandat d\'Investissement',
+  finalterms_name: 'Conditions Finales',
+  team_issuer_title: 'Gestionnaire d\'Investissement',
+  team_manager_title: 'Gestionnaire Délégué',
+  team_issuer_desc: 'iMaps ETI AG est une société dûment enregistrée selon les lois du Liechtenstein. La société est autorisée à émettre des titres dérivés au public dans l\'Espace économique européen ainsi qu\'en Suisse dans le cadre d\'un Programme d\'Émission approuvé par l\'Autorité des marchés financiers du Liechtenstein. La société est en outre autorisée à fournir des services de gestion des investissements et tout autre service financier à sa société mère, ses filiales ainsi qu\'à toute filiale de sa société mère.',
+  team_issuer_cta: 'Visiter le site ↗',
+  team_desc: 'ARQuant Management Limited est agréée et réglementée par la Financial Conduct Authority (FRN 947270). Enregistrée en Angleterre et au Pays de Galles, numéro d\'entreprise 13034143. Pour les profils complets de l\'équipe, l\'historique des performances et les détails de la stratégie, visitez le site de la société.',
+  team_cta: 'Visiter le site ↗',
+  contact_title: 'Contact',
+  contact_heading: 'Nous Contacter',
+  contact_sub: 'Veuillez adresser votre demande à la partie concernée ci-dessous.',
+  contact_issuer_title: 'Renseignements sur l\'ETI',
+  contact_issuer_desc: 'Pour toute question relative à la structure du certificat, son émission, sa cotation, le DIC ou l\'investissement dans DE000AMC0B38, contactez directement l\'Émetteur.',
+  contact_issuer_lbl: 'Émetteur',
+  contact_manager_title: 'Renseignements sur la Stratégie Sous-jacente',
+  contact_manager_desc: 'Pour toute question relative à la stratégie d\'investissement ARQuant, les performances ou le Gestionnaire Délégué, contactez ARQuant directement.',
+  contact_manager_lbl: 'Gestionnaire',
+  contact_tel: 'Tél',
+  disclaimer_html: '<strong style="font-size:12px;color:var(--text);">Divulgation &amp; Avertissement</strong><br/><br/>Les informations présentées ici doivent être lues comme une introduction au prospectus de base de l\'Émetteur des Titres ETI daté du 3 avril 2025 (le « Prospectus de Base »). Ce Prospectus de Base a été approuvé par l\'Autorité des marchés financiers du Liechtenstein (la « FMA »), en tant qu\'autorité compétente au Liechtenstein en vertu du Règlement (UE) 2017/1129 du Parlement européen et du Conseil du 14 juin 2017 concernant le prospectus à publier en cas d\'offre au public de valeurs mobilières ou d\'admission de valeurs mobilières à la négociation sur un marché réglementé (le « Règlement Prospectus »). Les coordonnées de la FMA sont : Landstrasse 109, Postfach 279, 9490 Vaduz, Liechtenstein ; Téléphone : +423 236 73 73 ; Fax : +423 236 72 38 ; e-mail : info@fma-li.li.<br/><br/><strong style="color:var(--text);">Informations sur le Gestionnaire des Investissements</strong><br/>iMaps ETI AG agit en tant que Gestionnaire des Investissements et Émetteur des Titres ETI.<br/><br/><strong style="color:var(--text);">Informations sur le Gestionnaire Délégué</strong><br/>ARQuant Management Limited (<em>ARQuant</em> ou la <em>Société</em>) est une société privée constituée en Angleterre et au Pays de Galles sous le numéro de société 13034143, dont le siège social est situé au 167-169 Great Portland Street, Fifth Floor, Londres, W1W 5PF. ARQuant Management Limited est agréée et réglementée par la Financial Conduct Authority (la « FCA ») sous le numéro de référence : 947270. ARQuant Management Limited agit en tant que Gestionnaire Délégué des Investissements du Portefeuille en relation avec les Titres ETI.<br/><br/><strong style="color:var(--text);">Performance simulée</strong><br/>Tous les chiffres de performance présentés couvrent mars 2018 à avril 2026 et représentent des résultats simulés, pas la performance réelle de l\'ETI. L\'ETI (DE000AMC0B38) a été lancé en mai 2026. La simulation est basée sur les rendements historiques réels de la stratégie ARQuant et les rendements réels de l\'ETF SPY (à 100% et 30% de la VNI respectivement), avec des rendements USD couverts en EUR via des taux forward EUR/USD à un mois dérivés des taux d\'intérêt mensuels, et ajustés des intérêts sur emprunts de marge et des frais et commissions applicables. Les performances passées ne constituent pas une garantie des résultats futurs. Les informations contenues dans ce document marketing ne constituent pas une recherche en investissement. Certaines informations proviennent de sources publiques réputées fiables, mais leur exactitude, exhaustivité et actualité ne peuvent être garanties.<br/><br/><strong style="color:var(--text);">Restrictions de commercialisation</strong><br/>Cette page constitue une communication marketing et ne remplace pas le Document d\'Informations Clés (DIC) requis par le Règlement PRIIPs, ni le Prospectus de Base daté du 3 avril 2025 approuvé par l\'Autorité des marchés financiers du Liechtenstein (FMA). Lisez les deux avant d\'investir sur le site de l\'Émetteur (imaps-capital.com). Le prospectus est disponible gratuitement sur le site de l\'Émetteur <a href="https://imaps-capital.com" target="_blank" style="color:var(--orange);">https://imaps-capital.com</a>.<br/><br/>Cette page ne constitue pas une offre de vente ni une sollicitation d\'une offre d\'achat de valeurs mobilières. Toute décision d\'investissement doit être prise uniquement sur la base du prospectus approuvé, qui contient des informations détaillées sur les Titres ETI, notamment les risques, les frais et les dépenses. Il est conseillé aux investisseurs de consulter des conseillers professionnels avant tout investissement.<br/><br/>La publication et la distribution de supports marketing et d\'autres informations relatives aux valeurs mobilières dans certaines juridictions peuvent être restreintes par la loi, et il ne faut pas s\'y fier si elles sont inexactes, trompeuses ou incohérentes avec le prospectus. Sauf indication contraire expresse, ce document est destiné uniquement aux personnes qui sont des destinataires autorisés de ce document dans la juridiction dans laquelle le destinataire se trouve ou appartient. Le non-respect de ces restrictions peut constituer une violation des lois sur les valeurs mobilières de cette juridiction.',
+  fees_heading: 'Structure des coûts',
+  fees_label01: '01 — Frais ponctuels',
+  fees_text01: 'Tant que les actifs sous gestion (ASG) n\'atteignent pas 2,5 M€, un <strong>frais de 1%</strong> s\'applique à chaque achat ou vente d\'ETI. Une fois ce seuil dépassé, le taux descend à <strong>0,5%</strong> — améliorant les conditions de liquidité pour tous les investisseurs.',
+  fees_label02: '02 — Frais courants totaux',
+  fees_fixed_head: 'Annuels fixes',
+  fees_fixed_label: 'Coûts fixes totaux',
+  fees_var_head: 'Annuels variables',
+  fees_var_label: 'Gestion de l\'émetteur',
+  fees_cap_label: 'Plafond total',
+  fees_cap_note: 'p.a. · selon le DIC',
+  fees_cap_excl: 'hors frais ponctuels<br>et commission de performance',
+  fees_calc_aum: 'ASG',
+  fees_calc_charges: 'Frais courants totaux',
+  fees_calc_charges2: 'Frais courants totaux',
+  fees_per_year: 'par an',
+  fees_cap_applied: 'plafond atteint',
+  fees_label03: '03 — Commission de performance',
+  fees_text03: '<strong>20%</strong> de la variation positive de la VNI au-dessus du high-water mark, calculée et prélevée trimestriellement. Aucune commission n\'est perçue tant que le portefeuille ne dépasse pas son précédent pic. Non soumise au plafond de 4,5% p.a.',
+  fees_label04: '04 — Pourquoi cette structure profite aux investisseurs',
+  fees_prop1_title: 'Les coûts diminuent avec la croissance des ASG',
+  fees_prop1_body: 'Chaque souscription supplémentaire répartit les coûts fixes sur une base d\'investisseurs plus large, faisant baisser le ratio de charges effectives pour tous. À 5 M€ d\'ASG, l\'ETI ARQuant atteint 0,46% p.a. — en dessous des 0,50%–1,50% p.a. typiques des ETF à gestion active.',
+  fees_prop2_title: 'Le gérant investit son propre capital',
+  fees_prop2_body: 'Le Gestionnaire Délégué (ARQuant Management Limited) engage 100 000 € de son propre capital avant tout investisseur externe et sera le dernier à se désinvestir. Il supporte la charge de coûts la plus élevée au lancement — démontrant sa conviction, pas seulement la perception de commissions.',
+  fees_prop3_title: 'Économies institutionnelles à partir de 2,5 M€',
+  fees_prop3_body: 'Au-delà de 2,5 M€ d\'ASG, les frais courants tombent sous 0,8% p.a. — comparables aux ETF actions long/court à gestion active — tandis que les frais d\'entrée et de sortie descendent également de 1,0% à 0,5%, améliorant les conditions de liquidité pour tous les investisseurs.',
+  footer_copy: '© 2026 ARQuant Management Limited · Tous droits réservés',
+  footer_privacy: 'Confidentialité',
+  footer_disclaimer: 'Avertissement',
+  footer_fca: 'Agréée et Réglementée · FRN 947270',
+},
+
+de: {
+  nav_performance: 'Performance',
+  nav_strategy: 'Strategie',
+  nav_fees: 'Gebühren',
+  nav_invest: 'So Investieren Sie',
+  nav_documents: 'Dokumente',
+  nav_team: 'Verwaltung',
+  nav_enquire: 'Anfrage',
+  hero_sub: 'Eine systematische, vollständig algorithmische Long/Short-Aktienstrategie für US-Märkte, kombiniert mit einem ETF-Overlay — EUR-gesichert und an der Börse Stuttgart notiert. ETI-Start Mai 2026.',
+  hero_simNotice: '<strong>Simulierte Performance:</strong> Die nachstehenden Kennzahlen basieren auf einer Simulation (März 2018 – April 2026). Die tatsächliche ETI-Erfolgshistorie beginnt ab Mai 2026.',
+  hero_stat1_label: 'Annualisierte Rendite',
+  hero_stat1_sub: 'Simuliert · nach Gebühren · EUR',
+  hero_stat2_label: 'Sharpe-Ratio',
+  hero_stat2_sub: 'Simuliert (März 2018 – April 2026)',
+  hero_stat3_label: 'Maximaler Drawdown',
+  hero_stat3_sub: 'Simulierter Zeitraum',
+  hero_stat4_label: 'Kumulierte Rendite',
+  hero_stat4_sub: 'März 2018 – April 2026 · EUR · simuliert',
+  hero_cta1: 'BIB Herunterladen',
+  hero_cta2: 'Performance Ansehen',
+  fact_denomination: 'Denomination',
+  fact_baseccy: 'Basiswährung',
+  fact_inception: 'ETI-Auflage',
+  fact_exchange: 'Börse',
+  fact_issuer: 'Emittent',
+  fact_fees: 'Lfd. + Perf.-Gebühr',
+  fact_benchmark: 'Benchmark',
+  heatmap_year: 'Jahr',
+  perf_title: 'Simulierte historische Performance',
+  perf_heading: 'Beständige Renditen über Marktzyklen hinweg',
+  perf_noticeHtml: '<strong>⚠ Simulierte Daten — keine tatsächliche ETI-Performance.</strong> Die Zahlen decken den Zeitraum März 2018 bis April 2026 ab und basieren auf: (1) tatsächlichen Renditen der ARQuant-Strategie; (2) tatsächlichem SPY-ETF als Overlay mit 30% des NIW; (3) USD-Renditen, EUR-gesichert über 1-Monats-Forward-EUR/USD-Kurse aus monatlichen Zinssätzen; (4) bereinigt um Zinsen auf Margin-Darlehen und Gebühren. Der ETI (DE000AMC0B38) wurde im Mai 2026 aufgelegt. Benchmark: iShares S&P 500 EUR Hedged UCITS ETF (Acc) · ISIN IE00B3ZW0K18.',
+  perf_sub: 'Alle Jahre positiv im simulierten Zeitraum. EUR-denominiert, nach Gebühren.',
+  perf_source: 'Quelle: ARQuant Management. Simulation auf Basis tatsächlicher ARQuant-Strategierenditen und tatsächlicher SPY-Performance (100% + 30% des NIW), EUR-gesichert mit Monatsend-1-Monats-Forward-Kursen. Vergangene Wertentwicklungen sind kein verlässlicher Indikator für zukünftige Ergebnisse.',
+  metrics_title: 'Risiko- und Renditekennzahlen',
+  metrics_heading: 'Wesentliche Performance-Statistiken · Nach Gebühren',
+  metrics_sub: 'Annualisierte Kennzahlen über mehrere Zeithorizonte, EUR-denominiert.',
+  metricPeriods: ['Seit Auflage (März 2018)', 'Seit Jan 2021', 'Letzte 60 Monate', 'Letzte 36 Monate', 'Letzte 12 Monate'],
+  metric_ret: 'Ann. Rendite',
+  metric_vol: 'Volatilität',
+  metric_rfr: 'Risikofreier Zinssatz',
+  metric_sharpe: 'Sharpe',
+  metric_dd: 'Max. Drawdown',
+  chart_label: 'Indexierte Performance (Basis 100, EUR, nach Gebühren)',
+  chart_label2: 'iShares S&P 500 EUR-Hedged',
+  months: ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],
+  strategy_title: 'Anlagestrategie',
+  strategy_heading: 'Portfoliokonstruktion',
+  strategy_sub: 'Das Basisportfolio besteht aus zwei Komponenten, die gleichzeitig laufen und beide von ARQuant Management Limited (Delegierter Manager) verwaltet werden. Benchmark: <strong>iShares S&P 500 EUR Hedged UCITS ETF (Acc)</strong> · ISIN IE00B3ZW0K18.',
+  strat1_title: 'ARQuant Proprietäre Strategie',
+  strat1_desc: 'Eine vollständig automatisierte, marktneutrale quantitative Long/Short-Aktienstrategie, aktiv seit März 2018. Macht jederzeit 100% des Portfolionotionals aus.',
+  strat1_list: '<li>32 unabhängige Prädiktoren, alle 15 Minuten neu optimiert</li><li>Universum: alle liquiden US-notierten Aktien & ETFs (bis zu 100 Kandidaten pro Quartal)</li><li>Handelbares Portfolio: 15–25 Aktien, zweiwöchentlich neu gewichtet</li><li>Durchschnittliche Haltedauer: 3–5 Handelstage</li><li>Kelly-Kriterium-basierter Hebel, Bruttoexposure auf 300% des NIW begrenzt</li><li>Stop-Loss: Drawdown stündlich gegenüber dem Höchststand überwacht</li>',
+  strat2_title: 'ETF-Overlay',
+  strat2_desc: 'Eine ergänzende Long-Allokation in aktiv verwaltete Long/Short-US-Aktien-ETFs, die zusätzliche Diversifikation und Marktpartizipation bietet.',
+  strat2_list: '<li>Genehmigter Korb: CLSE, FFLS, LBAY, SPY — Korb kann erweitert werden</li><li>Erstallokation: ausschließlich CLSE bei Auflage</li><li>Zielallokation: 30% des AUM (fest bis AUM 500 Mio. USD überschreitet)</li><li>Dynamische Bandbreite von 30–100% nach Erreichen der AUM-Schwelle</li><li>Tägliches Rebalancing; Handel ausgelöst bei Abweichung > 5% vom Ziel</li><li>EUR/USD-Absicherung via Micro-CME-Futures, angepasst bei Abweichung > 2,5% oder 12.500 €</li>',
+  invest_title: 'So Investieren Sie',
+  invest_heading: 'Drei Schritte zum Zugang zum ETI',
+  invest_sub: 'Das Zertifikat ist an der Börse Stuttgart notiert und über die meisten Broker erhältlich, die Zugang zu europäischen börsengehandelten Produkten bieten.',
+  step1_title: 'Wesentliche Dokumente Lesen',
+  step1_desc: 'Laden Sie das BIB und die Endgültigen Bedingungen aus dem Dokumentenbereich unten oder von der Website der iMaps ETI AG herunter und lesen Sie diese vor der Anlage.',
+  step2_title: 'Zugang über Ihren Broker',
+  step2_desc: 'Kaufen Sie das Zertifikat über jeden Broker mit Zugang zur Börse Stuttgart — darunter Interactive Brokers, Swissquote oder Ihre reguläre Bank.',
+  step3_title: 'Suche nach ISIN',
+  step3_desc: 'Verwenden Sie die ISIN <strong>DE000AMC0B38</strong>, um das Instrument zu finden und zu handeln. Für institutionelle oder große Anfragen kontaktieren Sie uns direkt unten.',
+  invest_notice_title: 'Vorgesehener Kleinanleger',
+  invest_notice: 'Das Produkt richtet sich an Privatkunden, die das Ziel der allgemeinen Vermögensbildung / Vermögensoptimierung verfolgen und einen mittel- bis langfristigen Anlagehorizont haben. Dieses Produkt richtet sich an Anleger mit fortgeschrittenen Kenntnissen und/oder Erfahrungen mit Finanzprodukten. Der Anleger kann Verluste bis zum Totalverlust des investierten Kapitals erleiden und legt keinen Wert auf einen Kapitalschutz.',
+  elig_title: 'Vertrieb und Zulassung',
+  elig_heading: 'ETI ist zugelassen für',
+  elig_retail_title: 'Öffentliches Angebot an Privatanleger',
+  elig_retail_desc: 'Deutschland, Frankreich, Italien, Spanien, Zypern und die Schweiz.',
+  elig_professional_title: 'Professionelle und Qualifizierte Anleger',
+  elig_professional_desc: 'Öffentliches Angebot an Professionelle und Qualifizierte Anleger in der Europäischen Union, dem Vereinigten Königreich, Norwegen und Island.',
+  elig_private_title: 'Privatplatzierung',
+  elig_private_desc: 'Mit akkreditierten Anlegern im Vereinigten Königreich, Dubai, Singapur, Hongkong und den meisten anderen asiatischen Jurisdiktionen.',
+  docs_title: 'Rechtliche Dokumente',
+  docs_heading: 'Download-Center',
+  docs_sub: 'Alle regulatorischen Offenlegungsdokumente sind unten verfügbar. Anleger sollten das einschlägige Basisinformationsblatt (BIB) und die für ihre Rechtsordnung relevanten Angebotsunterlagen lesen, bevor sie eine Anlageentscheidung treffen.',
+  mandate_name: 'Anlagemandat',
+  finalterms_name: 'Endgültige Bedingungen',
+  team_issuer_title: 'Investmentmanager',
+  team_manager_title: 'Delegierter Manager',
+  team_issuer_desc: 'iMaps ETI AG ist eine nach liechtensteinischem Recht ordnungsgemäß eingetragene Gesellschaft. Die Gesellschaft ist berechtigt, im Rahmen eines von der Finanzmarktaufsicht Liechtenstein genehmigten Emissionsprogramms derivative Wertpapiere öffentlich im Europäischen Wirtschaftsraum sowie in der Schweiz anzubieten. Die Gesellschaft ist ferner berechtigt, ihrer Muttergesellschaft, deren Tochtergesellschaften sowie allen Tochtergesellschaften der Muttergesellschaft Investmentmanagement und sonstige Finanzdienstleistungen zu erbringen.',
+  team_issuer_cta: 'Website besuchen ↗',
+  team_desc: 'ARQuant Management Limited ist von der Financial Conduct Authority (FRN 947270) zugelassen und reguliert. Eingetragen in England und Wales, Unternehmensnummer 13034143. Vollständige Teamprofile, Erfolgshistorie und Strategiedetails finden Sie auf der Website des Unternehmens.',
+  team_cta: 'Website besuchen ↗',
+  contact_title: 'Kontakt',
+  contact_heading: 'Kontaktieren Sie Uns',
+  contact_sub: 'Bitte richten Sie Ihre Anfrage an die entsprechende Partei unten.',
+  contact_issuer_title: 'Anfragen zum ETI',
+  contact_issuer_desc: 'Bei Fragen zur Zertifikatsstruktur, Emission, Notierung, dem BIB oder der Anlage in DE000AMC0B38 wenden Sie sich direkt an den Emittenten.',
+  contact_issuer_lbl: 'Emittent',
+  contact_manager_title: 'Anfragen zur Basisstrategie',
+  contact_manager_desc: 'Bei Fragen zur ARQuant-Anlagestrategie, Performance oder dem delegierten Investmentmanager wenden Sie sich direkt an ARQuant.',
+  contact_manager_lbl: 'Manager',
+  contact_tel: 'Tel',
+  disclaimer_html: '<strong style="font-size:12px;color:var(--text);">Offenlegung &amp; Haftungsausschluss</strong><br/><br/>Die hier präsentierten Informationen sind als Einführung in den Basisprospekt des Emittenten der ETI-Wertpapiere vom 3. April 2025 (der „Basisprospekt") zu verstehen. Dieser Basisprospekt wurde von der Liechtensteinischen Finanzmarktaufsicht (der „FMA") als zuständige Behörde in Liechtenstein gemäß der Verordnung (EU) 2017/1129 des Europäischen Parlaments und des Rates vom 14. Juni 2017 über den Prospekt, der beim öffentlichen Angebot von Wertpapieren oder deren Zulassung zum Handel an einem geregelten Markt zu veröffentlichen ist (die „Prospektverordnung"), genehmigt. Die Kontaktdaten der FMA lauten: Landstrasse 109, Postfach 279, 9490 Vaduz, Liechtenstein; Telefon: +423 236 73 73; Fax: +423 236 72 38; E-Mail: info@fma-li.li.<br/><br/><strong style="color:var(--text);">Informationen zum Investmentmanager</strong><br/>iMaps ETI AG fungiert als Investmentmanager und Emittent der ETI-Wertpapiere.<br/><br/><strong style="color:var(--text);">Informationen zum Delegierten Manager</strong><br/>ARQuant Management Limited (<em>ARQuant</em> oder die <em>Gesellschaft</em>) ist eine in England und Wales unter der Gesellschaftsnummer 13034143 eingetragene Privatgesellschaft mit Sitz in 167-169 Great Portland Street, Fifth Floor, London, W1W 5PF. ARQuant Management Limited ist von der Financial Conduct Authority (der „FCA") unter der Referenznummer 947270 zugelassen und reguliert. ARQuant Management Limited fungiert als Delegierter Investmentmanager des Portfolios in Bezug auf die ETI-Wertpapiere.<br/><br/><strong style="color:var(--text);">Simulierte Performance</strong><br/>Alle dargestellten Performancekennzahlen decken den Zeitraum März 2018 bis April 2026 ab und stellen simulierte Ergebnisse dar, keine tatsächliche ETI-Performance. Der ETI (DE000AMC0B38) wurde im Mai 2026 aufgelegt. Die Simulation basiert auf tatsächlichen historischen Renditen der ARQuant-Strategie und tatsächlichen SPY-ETF-Renditen (zu 100% bzw. 30% des NIW), mit USD-Renditen EUR-gesichert über 1-Monats-Forward-EUR/USD-Kurse aus monatlichen Zinssätzen, bereinigt um Zinsen auf Margin-Darlehen und anfallende Gebühren und Provisionen. Vergangene Wertentwicklungen sind keine Garantie für zukünftige Ergebnisse. Die in diesem Marketingmaterial enthaltenen Informationen stellen keine Anlageforschung dar. Einige Informationen stammen aus öffentlichen Quellen, die als zuverlässig gelten, jedoch können Genauigkeit, Vollständigkeit und Aktualität nicht garantiert werden.<br/><br/><strong style="color:var(--text);">Vertriebsbeschränkungen</strong><br/>Diese Seite stellt eine Marketingmitteilung dar und ersetzt nicht das nach der PRIIPs-Verordnung vorgeschriebene Basisinformationsblatt (BIB) oder den Basisprospekt vom 3. April 2025, der von der Liechtensteinischen Finanzmarktaufsicht (FMA) genehmigt wurde. Lesen Sie beide vor der Anlage auf der Website des Emittenten (imaps-capital.com). Der Prospekt ist auf der Website des Emittenten kostenlos erhältlich: <a href="https://imaps-capital.com" target="_blank" style="color:var(--orange);">https://imaps-capital.com</a>.<br/><br/>Diese Seite stellt weder ein Angebot zum Verkauf noch eine Aufforderung zur Abgabe eines Kaufangebots für Wertpapiere dar. Jede Anlageentscheidung sollte ausschließlich auf Grundlage des genehmigten Prospekts getroffen werden, der detaillierte Informationen zu den ETI-Wertpapieren enthält, einschließlich Risiken, Gebühren und Kosten. Anlegern wird empfohlen, vor einer Anlage professionelle Berater zu konsultieren.<br/><br/>Die Veröffentlichung und Verteilung von Marketingmaterialien und anderen Informationen zu Wertpapieren kann in bestimmten Rechtsordnungen gesetzlich eingeschränkt sein; auf sie darf nicht vertraut werden, wenn sie ungenau, irreführend oder mit dem Prospekt unvereinbar sind. Sofern nicht ausdrücklich anders angegeben, richtet sich dieses Material ausschließlich an Personen, die in der Rechtsordnung, in der sich der Empfänger befindet oder der er angehört, zum Empfang dieses Materials berechtigt sind. Die Nichteinhaltung dieser Beschränkungen kann einen Verstoß gegen die Wertpapiergesetze dieser Rechtsordnung darstellen.',
+  fees_heading: 'Kostenstruktur',
+  fees_label01: '01 — Einmalige Kosten',
+  fees_text01: 'Bis das verwaltete Vermögen (AUM) 2,5 Mio. € erreicht, fällt eine <strong>Gebühr von 1%</strong> auf jeden ETI-Kauf oder -Verkaufsbetrag an. Sobald dieser Schwellenwert überschritten wird, sinkt der Satz auf <strong>0,5%</strong> — und verbessert die Liquiditätsbedingungen für alle Anleger.',
+  fees_label02: '02 — Laufende Gesamtkosten',
+  fees_fixed_head: 'Fixe Jahreskosten',
+  fees_fixed_label: 'Gesamte Fixkosten',
+  fees_var_head: 'Variable Jahreskosten',
+  fees_var_label: 'Emittentenverwaltung',
+  fees_cap_label: 'Gesamtdeckel',
+  fees_cap_note: 'p.a. · gem. BIB',
+  fees_cap_excl: 'exkl. einmalige Kosten<br>und Performance-Gebühr',
+  fees_calc_aum: 'AUM',
+  fees_calc_charges: 'Laufende Gesamtkosten',
+  fees_calc_charges2: 'Laufende Gesamtkosten',
+  fees_per_year: 'pro Jahr',
+  fees_cap_applied: 'Deckel angewendet',
+  fees_label03: '03 — Performance-Gebühr',
+  fees_text03: '<strong>20%</strong> der positiven NIW-Veränderung über der High-Water-Mark, vierteljährlich berechnet und erhoben. Es wird keine Gebühr erhoben, solange das Portfolio seinen vorherigen Höchststand nicht überschreitet. Nicht dem 4,5%-p.a.-Gesamtdeckel unterworfen.',
+  fees_label04: '04 — Warum diese Struktur für Anleger funktioniert',
+  fees_prop1_title: 'Kosten sinken mit wachsendem AUM',
+  fees_prop1_body: 'Jede zusätzliche Zeichnung verteilt die Fixkosten auf eine größere Anlegerbasis und senkt die effektive Kostenquote für alle. Bei 5 Mio. € AUM erreicht der ARQuant ETI 0,46% p.a. — unter den 0,50%–1,50% p.a., die für aktiv verwaltete ETFs typisch sind.',
+  fees_prop2_title: 'Manager trägt eigenes Kapital bei',
+  fees_prop2_body: 'Der Delegierte Manager (ARQuant Management Limited) bringt 100.000 € eigenes Kapital ein, bevor ein externer Anleger einsteigt, und wird als Letzter auszahlen. Er trägt die höchste Kostenlast beim Start — und demonstriert damit Überzeugung, nicht nur Gebührenerhebung.',
+  fees_prop3_title: 'Institutionelle Konditionen ab 2,5 Mio. €',
+  fees_prop3_body: 'Über 2,5 Mio. € AUM sinken die laufenden Kosten unter 0,8% p.a. — vergleichbar mit aktiv verwalteten Long/Short-Aktien-ETFs — während Ein- und Ausstiegsgebühren ebenfalls von 1,0% auf 0,5% sinken und die Liquiditätsbedingungen für alle Anleger verbessern.',
+  footer_copy: '© 2026 ARQuant Management Limited · Alle Rechte vorbehalten',
+  footer_privacy: 'Datenschutz',
+  footer_disclaimer: 'Haftungsausschluss',
+  footer_fca: 'Zugelassen und Reguliert · FRN 947270',
+},
+
+it: {
+  nav_performance: 'Performance',
+  nav_strategy: 'Strategia',
+  nav_fees: 'Commissioni',
+  nav_invest: 'Come Investire',
+  nav_documents: 'Documenti',
+  nav_team: 'Gestione',
+  nav_enquire: 'Richiesta',
+  hero_sub: 'Una strategia sistematica e interamente algoritmica long/short su azioni statunitensi, combinata con un\'allocazione in ETF — coperta in EUR e quotata alla Borsa di Stoccarda. ETI lanciato a maggio 2026.',
+  hero_simNotice: '<strong>Performance simulata:</strong> le cifre seguenti si basano su una simulazione (mar. 2018 – apr. 2026). Il track record effettivo dell\'ETI inizia a maggio 2026.',
+  hero_stat1_label: 'Rendimento Annualizzato',
+  hero_stat1_sub: 'Simulato · al netto dei costi · EUR',
+  hero_stat2_label: 'Indice di Sharpe',
+  hero_stat2_sub: 'Simulato (mar. 2018 – apr. 2026)',
+  hero_stat3_label: 'Drawdown Massimo',
+  hero_stat3_sub: 'Periodo simulato',
+  hero_stat4_label: 'Rendimento Cumulato',
+  hero_stat4_sub: 'Mar. 2018 – Apr. 2026 · EUR · simulato',
+  hero_cta1: 'Scarica il KID',
+  hero_cta2: 'Visualizza Performance',
+  fact_denomination: 'Denominazione',
+  fact_baseccy: 'Valuta Base',
+  fact_inception: 'Avvio ETI',
+  fact_exchange: 'Borsa',
+  fact_issuer: 'Emittente',
+  fact_fees: 'Comm. Correnti + Perf.',
+  fact_benchmark: 'Benchmark',
+  heatmap_year: 'Anno',
+  perf_title: 'Performance Storica Simulata',
+  perf_heading: 'Rendimenti Costanti Attraverso i Cicli di Mercato',
+  perf_noticeHtml: '<strong>⚠ Dati simulati — non la performance effettiva dell\'ETI.</strong> Le cifre coprono il periodo marzo 2018 – aprile 2026 e si basano su: (1) rendimenti effettivi della strategia ARQuant; (2) ETF SPY effettivo come overlay al 30% del NAV; (3) rendimenti USD coperti in EUR tramite tassi forward EUR/USD a un mese derivati dai tassi di interesse mensili; (4) rettificati per gli interessi sui prestiti a margine e le commissioni. L\'ETI (DE000AMC0B38) è stato lanciato a maggio 2026. Benchmark: iShares S&P 500 EUR Hedged UCITS ETF (Acc) · ISIN IE00B3ZW0K18.',
+  perf_sub: 'Tutti gli anni positivi nel periodo simulato. Denominato in EUR, al netto dei costi.',
+  perf_source: 'Fonte: ARQuant Management. Simulazione basata sui rendimenti effettivi della strategia ARQuant e sulla performance effettiva dello SPY (rispettivamente 100% + 30% del NAV), copertura EUR tramite tassi forward a un mese di fine mese. Le performance passate non sono un indicatore affidabile dei risultati futuri.',
+  metrics_title: 'Metriche di Rischio e Rendimento',
+  metrics_heading: 'Statistiche di Performance Chiave · Al Netto dei Costi',
+  metrics_sub: 'Dati annualizzati su più orizzonti temporali, denominati in EUR.',
+  metricPeriods: ['Dall\'Inizio (Mar. 2018)', 'Da Gen. 2021', 'Ultimi 60 Mesi', 'Ultimi 36 Mesi', 'Ultimi 12 Mesi'],
+  metric_ret: 'Rendimento Ann.',
+  metric_vol: 'Volatilità',
+  metric_rfr: 'Tasso Risk-Free',
+  metric_sharpe: 'Sharpe',
+  metric_dd: 'Drawdown Max',
+  chart_label: 'Performance Indicizzata (base 100, EUR, al netto dei costi)',
+  chart_label2: 'iShares S&P 500 con copertura EUR',
+  months: ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'],
+  strategy_title: 'Strategia di Investimento',
+  strategy_heading: 'Costruzione del Portafoglio',
+  strategy_sub: 'Il portafoglio sottostante è composto da due componenti che operano simultaneamente, entrambe gestite da ARQuant Management Limited (Gestore Delegato). Benchmark: <strong>iShares S&P 500 EUR Hedged UCITS ETF (Acc)</strong> · ISIN IE00B3ZW0K18.',
+  strat1_title: 'Strategia Proprietaria ARQuant',
+  strat1_desc: 'Una strategia azionaria long/short quantitativa completamente automatizzata e neutrale al mercato, attiva dal marzo 2018. Costituisce il 100% del nozionale del portafoglio in qualsiasi momento.',
+  strat1_list: '<li>32 predittori indipendenti, riottimizzati ogni 15 minuti</li><li>Universo: tutte le azioni e gli ETF liquidi quotati negli USA (fino a 100 candidati per trimestre)</li><li>Portafoglio negoziabile: 15–25 azioni, ribilanciato ogni due settimane</li><li>Periodo medio di detenzione: 3–5 giorni lavorativi</li><li>Leva basata sul criterio di Kelly, esposizione lorda limitata al 300% del NAV</li><li>Stop-loss: drawdown monitorato ogni ora rispetto al massimo storico</li>',
+  strat2_title: 'Overlay in ETF',
+  strat2_desc: 'Un\'allocazione complementare sul lato lungo in ETF azionari long/short statunitensi a gestione attiva, che fornisce ulteriore diversificazione e partecipazione al mercato.',
+  strat2_list: '<li>Paniere approvato: CLSE, FFLS, LBAY, SPY — il paniere può essere esteso</li><li>Allocazione iniziale: solo CLSE all\'avvio</li><li>Allocazione target: 30% dell\'AUM (fissa fino al superamento di 500M USD di AUM)</li><li>Range dinamico del 30–100% una volta raggiunta la soglia di AUM</li><li>Ribilanciamento giornaliero; operazione attivata se lo scostamento supera il 5% del target</li><li>Copertura EUR/USD tramite futures Micro CME, rettificata se > 2,5% o 12.500 € di scostamento</li>',
+  invest_title: 'Come Investire',
+  invest_heading: 'Tre Passi per Accedere all\'ETI',
+  invest_sub: 'Il certificato è quotato alla Borsa di Stoccarda ed è disponibile tramite la maggior parte dei broker che offrono accesso ai prodotti scambiati in borsa europei.',
+  step1_title: 'Leggere i Documenti Chiave',
+  step1_desc: 'Scaricate e consultate il KID e le Condizioni Definitive nella sezione Documenti sottostante o sul sito di iMaps ETI AG prima di investire.',
+  step2_title: 'Accesso tramite il Vostro Broker',
+  step2_desc: 'Acquistate il certificato tramite qualsiasi broker con accesso alla Borsa di Stoccarda, tra cui Interactive Brokers, Swissquote o la vostra banca abituale.',
+  step3_title: 'Ricerca per ISIN',
+  step3_desc: 'Utilizzate l\'ISIN <strong>DE000AMC0B38</strong> per trovare e negoziare lo strumento. Per richieste istituzionali o di importo elevato, contattateci direttamente qui sotto.',
+  invest_notice_title: 'Investitore al dettaglio target',
+  invest_notice: 'Il prodotto è destinato a clienti privati che perseguono l\'obiettivo di formazione generale del patrimonio / ottimizzazione del patrimonio e hanno un orizzonte di investimento da medio a lungo termine. Questo prodotto è rivolto a investitori con conoscenze avanzate e/o esperienza con prodotti finanziari. L\'investitore può subire perdite fino alla perdita totale del capitale investito e non attribuisce importanza alla protezione del capitale.',
+  elig_title: 'Distribuzione e Idoneità',
+  elig_heading: 'L\'ETI è Idoneo per',
+  elig_retail_title: 'Offerta Pubblica al Dettaglio',
+  elig_retail_desc: 'Germania, Francia, Italia, Spagna, Cipro e Svizzera.',
+  elig_professional_title: 'Investitori Professionali e Qualificati',
+  elig_professional_desc: 'Offerta pubblica a Investitori Professionali e Qualificati nell\'Unione europea, nel Regno Unito, in Norvegia e in Islanda.',
+  elig_private_title: 'Collocamento Privato',
+  elig_private_desc: 'Con investitori accreditati nel Regno Unito, a Dubai, Singapore, Hong Kong e nella maggior parte delle altre giurisdizioni asiatiche.',
+  docs_title: 'Documenti Legali',
+  docs_heading: 'Centro Download',
+  docs_sub: 'Tutti i documenti di informativa regolamentare sono disponibili di seguito. Gli investitori dovrebbero leggere il Documento contenente le Informazioni Chiave (KID) applicabile e la documentazione d\'offerta pertinente alla propria giurisdizione prima di prendere qualsiasi decisione di investimento.',
+  mandate_name: 'Mandato di Investimento',
+  finalterms_name: 'Condizioni Definitive',
+  team_issuer_title: 'Gestore degli Investimenti',
+  team_manager_title: 'Gestore Delegato',
+  team_issuer_desc: 'iMaps ETI AG è una società regolarmente registrata ai sensi delle leggi del Liechtenstein. La società è autorizzata a emettere titoli derivati al pubblico nello Spazio economico europeo e in Svizzera nell\'ambito di un Programma di Emissione approvato dall\'Autorità di vigilanza del mercato finanziario del Liechtenstein. La società è inoltre autorizzata a fornire servizi di gestione degli investimenti e qualsiasi altro servizio finanziario alla propria società madre, alle proprie filiali nonché a qualsiasi filiale della propria società madre.',
+  team_issuer_cta: 'Visita il sito ↗',
+  team_desc: 'ARQuant Management Limited è autorizzata e regolamentata dalla Financial Conduct Authority (FRN 947270). Registrata in Inghilterra e Galles, numero di società 13034143. Per i profili completi del team, il track record e i dettagli della strategia, visitate il sito della società.',
+  team_cta: 'Visita il sito ↗',
+  contact_title: 'Contatto',
+  contact_heading: 'Contattateci',
+  contact_sub: 'Si prega di indirizzare la propria richiesta alla parte competente di seguito.',
+  contact_issuer_title: 'Informazioni sull\'ETI',
+  contact_issuer_desc: 'Per domande sulla struttura del certificato, l\'emissione, la quotazione, il KID o l\'investimento in DE000AMC0B38, contattare direttamente l\'Emittente.',
+  contact_issuer_lbl: 'Emittente',
+  contact_manager_title: 'Informazioni sulla Strategia Sottostante',
+  contact_manager_desc: 'Per domande sulla strategia di investimento ARQuant, le performance o il Gestore Delegato degli Investimenti, contattare ARQuant direttamente.',
+  contact_manager_lbl: 'Gestore',
+  contact_tel: 'Tel',
+  disclaimer_html: '<strong style="font-size:12px;color:var(--text);">Informativa &amp; Avvertenza</strong><br/><br/>Le informazioni presentate in questa pagina devono essere lette come un\'introduzione al prospetto di base dell\'Emittente dei Titoli ETI datato 3 aprile 2025 (il "Prospetto di Base"). Il Prospetto di Base è stato approvato dall\'Autorità di vigilanza del mercato finanziario del Liechtenstein (la "FMA"), quale autorità competente in Liechtenstein ai sensi del Regolamento (UE) 2017/1129 del Parlamento europeo e del Consiglio del 14 giugno 2017 relativo al prospetto da pubblicare per l\'offerta pubblica o l\'ammissione alla negoziazione di titoli in un mercato regolamentato (il "Regolamento Prospetto"). I recapiti della FMA sono: Landstrasse 109, Postfach 279, 9490 Vaduz, Liechtenstein; Telefono: +423 236 73 73; Fax: +423 236 72 38; e-mail: info@fma-li.li.<br/><br/><strong style="color:var(--text);">Informazioni sul Gestore degli Investimenti</strong><br/>iMaps ETI AG agisce in qualità di Gestore degli Investimenti ed Emittente dei Titoli ETI.<br/><br/><strong style="color:var(--text);">Informazioni sul Gestore Delegato</strong><br/>ARQuant Management Limited (<em>ARQuant</em> o la <em>Società</em>) è una società privata costituita in Inghilterra e nel Galles con il numero di società 13034143, con sede legale in 167-169 Great Portland Street, Fifth Floor, Londra, W1W 5PF. ARQuant Management Limited è autorizzata e regolamentata dalla Financial Conduct Authority (la "FCA") con numero di riferimento: 947270. ARQuant Management Limited agisce in qualità di Gestore Delegato degli Investimenti del Portafoglio in relazione ai Titoli ETI.<br/><br/><strong style="color:var(--text);">Performance simulata</strong><br/>Tutte le cifre di performance presentate coprono il periodo marzo 2018 – aprile 2026 e rappresentano risultati simulati, non la performance effettiva dell\'ETI. L\'ETI (DE000AMC0B38) è stato lanciato a maggio 2026. La simulazione si basa sui rendimenti storici effettivi della strategia ARQuant e sui rendimenti effettivi dell\'ETF SPY (rispettivamente al 100% e al 30% del NAV), con rendimenti USD coperti in EUR tramite tassi forward EUR/USD a un mese derivati dai tassi di interesse mensili, rettificati per gli interessi sui prestiti a margine e le commissioni applicabili. Le performance passate non costituiscono una garanzia dei risultati futuri. Le informazioni contenute in questo materiale di marketing non costituiscono ricerca in materia di investimenti. Alcune informazioni sono state ottenute da fonti pubbliche ritenute affidabili, ma non è possibile garantirne l\'accuratezza, la completezza e l\'aggiornamento.<br/><br/><strong style="color:var(--text);">Restrizioni di commercializzazione</strong><br/>Questa pagina costituisce una comunicazione di marketing e non sostituisce il Documento contenente le Informazioni Chiave (KID) richiesto dal Regolamento PRIIPs, né il Prospetto di Base del 3 aprile 2025 approvato dall\'Autorità di vigilanza del mercato finanziario del Liechtenstein (FMA). Leggere entrambi prima di investire sul sito dell\'Emittente (imaps-capital.com). Il prospetto è disponibile gratuitamente sul sito dell\'Emittente <a href="https://imaps-capital.com" target="_blank" style="color:var(--orange);">https://imaps-capital.com</a>.<br/><br/>Questa pagina non costituisce un\'offerta di vendita né una sollecitazione di un\'offerta di acquisto di valori mobiliari. Qualsiasi decisione di investimento deve essere presa esclusivamente sulla base del prospetto approvato, che contiene informazioni dettagliate sui Titoli ETI, inclusi rischi, oneri e spese. Si consiglia agli investitori di consultare consulenti professionali prima di effettuare qualsiasi investimento.<br/><br/>La diffusione e la distribuzione di materiale di marketing e di altre informazioni relative a valori mobiliari possono essere soggette a restrizioni legali in determinate giurisdizioni, e non ci si deve fare affidamento su di essi se inesatti, fuorvianti o incoerenti con il prospetto. Salvo espressa indicazione contraria, il presente materiale è destinato esclusivamente alle persone che sono destinatari autorizzati di tale materiale nella giurisdizione in cui il destinatario si trova o appartiene. Il mancato rispetto di tali restrizioni può costituire una violazione delle leggi sui valori mobiliari di tale giurisdizione.',
+  fees_heading: 'Struttura dei costi',
+  fees_label01: '01 — Costi una tantum',
+  fees_text01: 'Fino a quando le masse gestite (AUM) non raggiungono i 2,5 milioni di €, si applica una <strong>commissione dell\'1%</strong> su ogni importo di acquisto o vendita dell\'ETI. Una volta superata questa soglia, il tasso scende allo <strong>0,5%</strong> — migliorando le condizioni di liquidità per tutti gli investitori.',
+  fees_label02: '02 — Oneri correnti totali',
+  fees_fixed_head: 'Fissi annuali',
+  fees_fixed_label: 'Costi fissi totali',
+  fees_var_head: 'Variabili annuali',
+  fees_var_label: 'Gestione dell\'emittente',
+  fees_cap_label: 'Tetto totale',
+  fees_cap_note: 'p.a. · per KID',
+  fees_cap_excl: 'escl. costi una tantum<br>e commissione di performance',
+  fees_calc_aum: 'AUM',
+  fees_calc_charges: 'Oneri correnti totali',
+  fees_calc_charges2: 'Oneri correnti totali',
+  fees_per_year: 'all\'anno',
+  fees_cap_applied: 'tetto applicato',
+  fees_label03: '03 — Commissione di performance',
+  fees_text03: '<strong>20%</strong> della variazione positiva del NAV al di sopra dell\'high-water mark, calcolata e addebitata trimestralmente. Nessuna commissione è addebitata a meno che il portafoglio non superi il precedente massimo. Non soggetta al tetto totale del 4,5% p.a.',
+  fees_label04: '04 — Perché questa struttura funziona per gli investitori',
+  fees_prop1_title: 'I costi scendono con la crescita dell\'AUM',
+  fees_prop1_body: 'Ogni sottoscrizione aggiuntiva distribuisce i costi fissi su una base di investitori più ampia, riducendo per tutti il rapporto spese effettivo. A 5 milioni di € di AUM, l\'ETI ARQuant raggiunge lo 0,46% p.a. — al di sotto dello 0,50%–1,50% p.a. tipico degli ETF a gestione attiva.',
+  fees_prop2_title: 'Il gestore investe il proprio capitale',
+  fees_prop2_body: 'Il Gestore Delegato (ARQuant Management Limited) impegna 100.000 € del proprio capitale prima che entri qualsiasi investitore esterno, e sarà l\'ultimo a disinvestire. Assorbe il maggior onere di costi al lancio — dimostrando convinzione, non solo riscuotendo commissioni.',
+  fees_prop3_title: 'Economia istituzionale da 2,5 milioni di €',
+  fees_prop3_body: 'Oltre i 2,5 milioni di € di AUM, gli oneri correnti scendono sotto lo 0,8% p.a. — paragonabili agli ETF azionari long/short a gestione attiva — mentre anche le commissioni di entrata e di uscita scendono dall\'1,0% allo 0,5%, migliorando le condizioni di liquidità per tutti gli investitori.',
+  footer_copy: '© 2026 ARQuant Management Limited · Tutti i diritti riservati',
+  footer_privacy: 'Privacy',
+  footer_disclaimer: 'Avvertenza',
+  footer_fca: 'Autorizzata e Regolamentata · FRN 947270',
+},
+
+}; // end T
+
+// ── Language switcher ─────────────────────────────────────────────────
+function setLanguage(lang) {
+  if (!T[lang]) lang = 'en';
+  document.getElementById('htmlRoot').setAttribute('lang', lang);
+
+  // Update simple text nodes
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (T[lang][key] !== undefined) el.textContent = T[lang][key];
+  });
+
+  // Update HTML nodes
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    if (T[lang][key] !== undefined) el.innerHTML = T[lang][key];
+  });
+
+  // Update lang buttons
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+
+  // Update heatmap month headers
+  const headerCells = document.querySelectorAll('#heatmapHeader th');
+  const months = T[lang].months;
+  months.forEach((m, i) => {
+    if (headerCells[i + 1]) headerCells[i + 1].textContent = m;
+  });
+
+  // Rebuild metrics with translated labels
+  buildMetrics(lang);
+
+  // Update documents section
+  updateDocuments(lang);
+
+  // Refresh fee calculator labels (cap applied text may change with lang)
+  var _feeAumEl = document.getElementById('fee-aum-slider');
+  if (_feeAumEl) { feeUpdateFromAUM(parseInt(_feeAumEl.value)); }
+
+  // Update chart label
+  if (window._perfChart) {
+    window._perfChart.data.datasets[0].label = T[lang].chart_label;
+    if (window._perfChart.data.datasets[1]) {
+      window._perfChart.data.datasets[1].label = T[lang].chart_label2;
+    }
+    window._perfChart.update('none');
+  }
+
+  localStorage.setItem('aq_lang', lang);
+}
+
+// ── Documents section ─────────────────────────────────────────────────
+function updateDocuments(lang) {
+  const kid = KID_LINKS[lang];
+  const t = T[lang];
+  document.getElementById('docsGrid').innerHTML =
+    `<a class="doc-card" href="${kid.url}" target="_blank">
+      <div class="doc-icon">📄</div>
+      <div><div class="doc-name">${kid.name}</div><div class="doc-lang">${kid.sublabel}</div></div>
+    </a>
+    <a class="doc-card" href="https://arquantmanagement.sharepoint.com/:b:/s/ARQuantManagementPublic/IQA-hkKWjnwqQKogBl3VWQrbASPBH_WBtMDCN8l_hSpGeTE?e=1syXZA" target="_blank">
+      <div class="doc-icon">📑</div>
+      <div><div class="doc-name">${t.mandate_name}</div><div class="doc-lang">ARQuant Management Ltd</div></div>
+    </a>
+    <a class="doc-card" href="https://imaps-capital.com/pdf/ETI%20Final%20Terms%20&%20Conditions/DE000AMC0B38%20-%20ETI%20Final%20Terms%20&%20Conditions.pdf" target="_blank">
+      <div class="doc-icon">📋</div>
+      <div><div class="doc-name">${t.finalterms_name}</div><div class="doc-lang">DE000AMC0B38</div></div>
+    </a>`;
+}
+
+// ── Build heatmap ─────────────────────────────────────────────────────
+(function buildHeatmap() {
+  const tbody = document.getElementById('heatmapBody');
+  Object.keys(PERF).sort().forEach(year => {
+    const row = document.createElement('tr');
+    const ytd = PERF[year].filter(v => v !== null).reduce((acc, v) => acc * (1 + v / 100), 1);
+    const ytdVal = ((ytd - 1) * 100).toFixed(2);
+    row.innerHTML = `<td class="year">${year}</td>` +
+      PERF[year].map(v => v === null
+        ? `<td class="na">—</td>`
+        : `<td class="${v >= 0 ? 'pos' : 'neg'}">${v > 0 ? '+' : ''}${v.toFixed(2)}%</td>`
+      ).join('') +
+      `<td class="ytd ${parseFloat(ytdVal) >= 0 ? 'pos' : 'neg'}">${parseFloat(ytdVal) >= 0 ? '+' : ''}${ytdVal}%</td>`;
+    tbody.appendChild(row);
+  });
+})();
+
+// ── Build metrics cards ───────────────────────────────────────────────
+function buildMetrics(lang) {
+  const t = T[lang];
+  const grid = document.getElementById('metricsGrid');
+  grid.innerHTML = '';
+  METRICS.forEach((m, i) => {
+    const card = document.createElement('div');
+    card.className = 'metric-card';
+    card.innerHTML = `
+      <div class="metric-card-label">${t.metricPeriods[i]}</div>
+      <div class="metric-row"><span>${t.metric_ret}</span><span style="color:var(--pos)">${m.ret.toFixed(2)}%</span></div>
+      <div class="metric-row"><span>${t.metric_vol}</span><span>${m.vol.toFixed(2)}%</span></div>
+      <div class="metric-row"><span>${t.metric_rfr}</span><span>${m.rfr.toFixed(2)}%</span></div>
+      <div class="metric-row"><span>${t.metric_sharpe}</span><span style="color:var(--orange)">${m.sharpe.toFixed(2)}</span></div>
+      <div class="metric-row"><span>${t.metric_dd}</span><span style="color:var(--neg)">${m.dd.toFixed(2)}%</span></div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ── Build cumulative chart ────────────────────────────────────────────
+(function buildChart() {
+  const monthsEn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function buildIndex(series) {
+    const labels = [], values = [];
+    let idx = 100;
+    Object.keys(series).sort().forEach(year => {
+      series[year].forEach((v, i) => {
+        if (v === null) return;
+        idx = idx * (1 + v / 100);
+        labels.push(`${monthsEn[i]} ${year}`);
+        values.push(parseFloat(idx.toFixed(2)));
+      });
+    });
+    return { labels, values };
+  }
+
+  const main = buildIndex(PERF);
+  const hasBench = SP500_HDG && Object.keys(SP500_HDG).length > 0;
+  const bench = hasBench ? buildIndex(SP500_HDG) : { labels: [], values: [] };
+
+  // Use the union of label timelines, sorted chronologically (not by insertion
+  // order, which can place a series' earliest month at the end of the x-axis).
+  const labelKey = lbl => {
+    const [mon, yr] = lbl.split(' ');
+    return parseInt(yr, 10) * 12 + monthsEn.indexOf(mon);
+  };
+  const allLabels = Array.from(new Set([...main.labels, ...bench.labels]))
+    .sort((a, b) => labelKey(a) - labelKey(b));
+  const mainMap = new Map(main.labels.map((l, i) => [l, main.values[i]]));
+  const benchMap = new Map(bench.labels.map((l, i) => [l, bench.values[i]]));
+  const mainAligned = allLabels.map(l => mainMap.has(l) ? mainMap.get(l) : null);
+  const benchAligned = allLabels.map(l => benchMap.has(l) ? benchMap.get(l) : null);
+
+  const ctx = document.getElementById('perfChart').getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+  gradient.addColorStop(0, 'rgba(232,105,58,0.18)');
+  gradient.addColorStop(1, 'rgba(232,105,58,0)');
+
+  const datasets = [{
+    label: T.en.chart_label,
+    data: mainAligned,
+    borderColor: '#60A5FA',
+    backgroundColor: gradient,
+    borderWidth: 2,
+    pointRadius: 0,
+    pointHoverRadius: 4,
+    fill: true,
+    tension: 0.3,
+    spanGaps: true,
+  }];
+  if (hasBench) {
+    datasets.push({
+      label: T.en.chart_label2,
+      data: benchAligned,
+      borderColor: '#EA6639',
+      backgroundColor: 'rgba(234,102,57,0)',
+      borderWidth: 2,
+      borderDash: [4, 4],
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      fill: false,
+      tension: 0.3,
+      spanGaps: true,
+    });
+  }
+
+  window._perfChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: allLabels,
+      datasets,
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#6B6560', font: { size: 12, family: 'Inter' } } },
+        tooltip: {
+          backgroundColor: '#F7F4EF',
+          borderColor: '#D4CFC8',
+          borderWidth: 1,
+          titleColor: '#111111',
+          bodyColor: '#6B6560',
+          callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} (${((ctx.parsed.y / 100 - 1) * 100).toFixed(1)}%)` }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#6B6560', font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 14 },
+          grid: { color: 'rgba(212,207,200,0.7)' },
+        },
+        y: {
+          ticks: { color: '#6B6560', font: { size: 10 }, callback: v => v.toFixed(0) },
+          grid: { color: 'rgba(212,207,200,0.7)' },
+        }
+      }
+    }
+  });
+})();
+
+// ── Initialise ────────────────────────────────────────────────────────
+(function init() {
+  const saved = localStorage.getItem('aq_lang') || 'en';
+  buildMetrics(saved);
+  updateDocuments(saved);
+  setLanguage(saved);
+})();
+
+// ── Fee Structure Calculator ──────────────────────────────────────────
+(function() {
+  var FEE_WAREHOUSE = 5000000;
+  var FEE_CAP = 4.5;
+
+  function feeFixedTER(aum) {
+    var unsold = Math.max(0, FEE_WAREHOUSE - aum);
+    var total = 12000 + 900 + unsold * 0.0005 + aum * 0.002;
+    return (total / aum) * 100;
+  }
+
+  function feeAumFromTER(ter) {
+    var t = ter / 100;
+    var val = 15400 / (t - 0.0015);
+    return Math.min(5000000, Math.max(100000, val));
+  }
+
+  function feeFormatAUM(v) {
+    if (v >= 1000000) return '€' + (v / 1000000).toFixed(v % 1000000 === 0 ? 0 : 1) + 'm';
+    return '€' + Math.round(v / 1000) + 'k';
+  }
+
+  function feeFormatEUR(v) {
+    return '€' + Math.round(v).toLocaleString('en-GB');
+  }
+
+  var feeAumSlider = document.getElementById('fee-aum-slider');
+  var feeTerSlider = document.getElementById('fee-ter-slider');
+  var feeDispAUM   = document.getElementById('fee-disp-aum');
+  var feeDispPct   = document.getElementById('fee-disp-pct');
+  var feeDispCap   = document.getElementById('fee-disp-cap-note');
+  var feeDispEUR   = document.getElementById('fee-disp-eur');
+  var feeAumVal    = document.getElementById('fee-aum-slider-val');
+  var feeTerVal    = document.getElementById('fee-ter-slider-val');
+
+  if (!feeAumSlider) return;
+
+  var feeUpdatingFromAUM = false;
+  var feeUpdatingFromTER = false;
+
+  function getFeeCapText() {
+    var lang = (document.getElementById('htmlRoot') || document.documentElement).getAttribute('lang') || 'en';
+    return (T[lang] && T[lang].fees_cap_applied) ? T[lang].fees_cap_applied : 'cap applied';
+  }
+
+  function feeUpdateFromAUM(aum) {
+    var raw = feeFixedTER(aum);
+    var effective = Math.min(raw, FEE_CAP);
+    var charged = effective / 100 * aum;
+    feeDispAUM.textContent = feeFormatAUM(aum);
+    feeAumVal.textContent  = feeFormatAUM(aum);
+    if (raw > FEE_CAP) {
+      feeDispPct.textContent = FEE_CAP.toFixed(1) + '%';
+      feeDispCap.textContent = getFeeCapText();
+    } else {
+      feeDispPct.textContent = raw.toFixed(2) + '%';
+      feeDispCap.textContent = '';
+    }
+    feeDispEUR.textContent = feeFormatEUR(charged);
+    feeTerSlider.value = effective.toFixed(2);
+    feeTerVal.textContent = effective.toFixed(2) + '%';
+  }
+
+  function feeUpdateFromTER(ter) {
+    var terMin = parseFloat(feeTerSlider.min);  // 0.46
+    var terMax = parseFloat(feeTerSlider.max);  // 4.50
+    var snapped;
+    if (ter <= terMin) {
+      snapped = 5000000;                        // left end → max AUM
+    } else if (ter >= terMax) {
+      snapped = 100000;                         // right end → min AUM
+    } else {
+      var aum = feeAumFromTER(ter);
+      snapped = Math.round(aum / 50000) * 50000;
+      snapped = Math.min(4950000, Math.max(150000, snapped));
+    }
+    var raw = feeFixedTER(snapped);
+    var effective = Math.min(raw, FEE_CAP);
+    var charged = effective / 100 * snapped;
+    feeDispAUM.textContent = feeFormatAUM(snapped);
+    feeAumVal.textContent  = feeFormatAUM(snapped);
+    feeAumSlider.value     = snapped;
+    feeDispPct.textContent = effective.toFixed(2) + '%';
+    feeDispCap.textContent = raw > FEE_CAP ? getFeeCapText() : '';
+    feeDispEUR.textContent = feeFormatEUR(charged);
+    feeTerSlider.value     = effective.toFixed(2);
+    feeTerVal.textContent  = effective.toFixed(2) + '%';
+  }
+
+  feeAumSlider.addEventListener('input', function() {
+    if (feeUpdatingFromTER) return;
+    feeUpdatingFromAUM = true;
+    feeUpdateFromAUM(parseInt(this.value));
+    feeUpdatingFromAUM = false;
+  });
+
+  feeTerSlider.addEventListener('input', function() {
+    if (feeUpdatingFromAUM) return;
+    feeUpdatingFromTER = true;
+    feeUpdateFromTER(parseFloat(this.value));
+    feeUpdatingFromTER = false;
+  });
+
+  feeUpdateFromAUM(500000);
+})();
+</script>
+
+</body>
+</html>
